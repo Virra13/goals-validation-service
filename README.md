@@ -75,8 +75,8 @@ export DB_PASSWORD=kkd
 
 ```powershell
 $env:DB_URL = 'jdbc:postgresql://localhost:5432/kkd_migration_check'
-$env:DB_USER = 'kkd'
-$env:DB_PASSWORD = 'kkd'
+$env:DB_USER = 'user'
+$env:DB_PASSWORD = '12345'
 .\mvnw.cmd process-resources liquibase:update
 .\mvnw.cmd liquibase:rollback '-Dliquibase.rollbackCount=14'
 .\mvnw.cmd liquibase:update
