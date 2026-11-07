@@ -52,8 +52,8 @@ curl "http://localhost:8080/api/kkd/issues?run_id=2&unit_id=2&rule_code=GOAL_NO_
 
 ```powershell
 $env:KKD_TEST_DB_URL = 'jdbc:postgresql://localhost:5432/kkd_integration'
-$env:KKD_TEST_DB_USER = 'kkd'
-$env:KKD_TEST_DB_PASSWORD = 'kkd'
+$env:KKD_TEST_DB_USER = 'user'
+$env:KKD_TEST_DB_PASSWORD = '12345'
 .\mvnw.cmd test
 ```
 
