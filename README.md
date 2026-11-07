@@ -100,4 +100,4 @@ docker compose exec postgres psql -U kkd -d kkd_migration_check -tAc "SELECT cou
 
 ## Использование ИИ
 
-Решение разработано с ИИ-ассистентом Codex. Спецификация работы находится в [`specs/`](specs/) и включает [требования и критерии приёмки](specs/requirements.md) и [проектирование](specs/design.md).
+Решение разработано с ИИ-ассистентом. Спецификация работы находится в [`specs/`](specs/) и включает [требования и критерии приёмки](specs/requirements.md) и [проектирование](specs/design.md).
