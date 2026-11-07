@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <changeSet id="009-insert-units" author="developer">
+        <insert tableName="unit">
+            <column name="id" valueNumeric="1"/>
+            <column name="name" value="Дирекция цифровых продуктов"/>
+        </insert>
+
+        <insert tableName="unit">
+            <column name="id" valueNumeric="2"/>
+            <column name="name" value="Департамент клиентских решений"/>
+            <column name="parent_id" valueNumeric="1"/>
+        </insert>
+
+        <insert tableName="unit">
+            <column name="id" valueNumeric="3"/>
+            <column name="name" value="Департамент платформенной разработки"/>
+            <column name="parent_id" valueNumeric="1"/>
+        </insert>
+
+        <insert tableName="unit">
+            <column name="id" valueNumeric="4"/>
+            <column name="name" value="Управление корпоративных сервисов"/>
+            <column name="parent_id" valueNumeric="2"/>
+        </insert>
+
+        <insert tableName="unit">
+            <column name="id" valueNumeric="5"/>
+            <column name="name" value="Управление backend-платформы"/>
+            <column name="parent_id" valueNumeric="3"/>
+        </insert>
+
+        <insert tableName="unit">
+            <column name="id" valueNumeric="6"/>
+            <column name="name" value="Управление данных и интеграций"/>
+            <column name="parent_id" valueNumeric="3"/>
+        </insert>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('unit', 'id'), (SELECT MAX(id) FROM unit), true);
+        </sql>
+
+        <rollback>
+            <delete tableName="unit"><where>id IN (4, 5, 6)</where></delete>
+            <delete tableName="unit"><where>id IN (2, 3)</where></delete>
+            <delete tableName="unit"><where>id = 1</where></delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

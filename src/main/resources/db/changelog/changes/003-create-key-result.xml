@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="003-create-key-result" author="developer">
+        <createTable tableName="key_result">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_key_result"
+                             nullable="false"/>
+            </column>
+            <column name="goal_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_value" type="NUMERIC(18,4)"/>
+            <column name="fact_value" type="NUMERIC(18,4)"/>
+            <column name="weight" type="INTEGER"/>
+            <column name="last_fact_update" type="TIMESTAMPTZ"/>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="key_result"
+                baseColumnNames="goal_id"
+                constraintName="fk_key_result_goal"
+                referencedTableName="goal"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE key_result
+            ADD CONSTRAINT chk_key_result_weight
+            CHECK (weight IS NULL OR (weight &gt;= 0 AND weight &lt;= 100));
+        </sql>
+
+        <createIndex tableName="key_result" indexName="idx_key_result_goal_id">
+            <column name="goal_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="key_result" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

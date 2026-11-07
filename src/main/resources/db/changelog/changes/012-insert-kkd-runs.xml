@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <changeSet id="012-insert-kkd-runs" author="developer">
+        <insert tableName="kkd_run">
+            <column name="id" valueNumeric="1"/>
+            <column name="status" value="COMPLETED"/>
+            <column name="snapshot_date" valueComputed="TIMESTAMPTZ '2026-10-19 09:00:00+00'"/>
+            <column name="started_at" valueComputed="TIMESTAMPTZ '2026-10-19 09:00:00+00'"/>
+            <column name="completed_at" valueComputed="TIMESTAMPTZ '2026-10-19 09:01:30+00'"/>
+        </insert>
+
+        <insert tableName="kkd_run">
+            <column name="id" valueNumeric="2"/>
+            <column name="status" value="COMPLETED"/>
+            <column name="snapshot_date" valueComputed="TIMESTAMPTZ '2026-10-26 09:00:00+00'"/>
+            <column name="compared_to_run_id" valueNumeric="1"/>
+            <column name="started_at" valueComputed="TIMESTAMPTZ '2026-10-26 09:00:00+00'"/>
+            <column name="completed_at" valueComputed="TIMESTAMPTZ '2026-10-26 09:01:18+00'"/>
+        </insert>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('kkd_run', 'id'), (SELECT MAX(id) FROM kkd_run), true);
+        </sql>
+
+        <rollback>
+            <delete tableName="kkd_run"><where>id = 2</where></delete>
+            <delete tableName="kkd_run"><where>id = 1</where></delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

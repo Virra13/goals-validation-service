@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <include file="db/changelog/changes/001-create-unit.xml"/>
+    <include file="db/changelog/changes/002-create-goal.xml"/>
+    <include file="db/changelog/changes/003-create-key-result.xml"/>
+    <include file="db/changelog/changes/004-create-kkd-rule.xml"/>
+    <include file="db/changelog/changes/005-create-kkd-run.xml"/>
+    <include file="db/changelog/changes/006-create-kkd-issue.xml"/>
+    <include file="db/changelog/changes/007-create-kkd-run-metric.xml"/>
+    <include file="db/changelog/changes/008-insert-kkd-rules.xml"/>
+    <include file="db/changelog/changes/009-insert-units.xml"/>
+    <include file="db/changelog/changes/010-insert-goals.xml"/>
+    <include file="db/changelog/changes/011-insert-key-results.xml"/>
+    <include file="db/changelog/changes/012-insert-kkd-runs.xml"/>
+    <include file="db/changelog/changes/013-insert-kkd-issues.xml"/>
+    <include file="db/changelog/changes/014-insert-kkd-run-metrics.xml"/>
+
+</databaseChangeLog>

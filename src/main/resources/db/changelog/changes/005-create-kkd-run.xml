@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="005-create-kkd-run" author="developer">
+        <createTable tableName="kkd_run">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_kkd_run"
+                             nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="snapshot_date" type="TIMESTAMPTZ">
+                <constraints nullable="false"/>
+            </column>
+            <column name="compared_to_run_id" type="BIGINT"/>
+            <column name="started_at" type="TIMESTAMPTZ"/>
+            <column name="completed_at" type="TIMESTAMPTZ"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_run"
+                baseColumnNames="compared_to_run_id"
+                constraintName="fk_kkd_run_compared_to"
+                referencedTableName="kkd_run"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <sql>
+            ALTER TABLE kkd_run
+            ADD CONSTRAINT chk_kkd_run_status
+            CHECK (status IN ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED'));
+
+            ALTER TABLE kkd_run
+            ADD CONSTRAINT chk_kkd_run_not_compared_to_self
+            CHECK (compared_to_run_id IS NULL OR compared_to_run_id &lt;&gt; id);
+        </sql>
+
+        <createIndex tableName="kkd_run" indexName="idx_kkd_run_snapshot_date">
+            <column name="snapshot_date"/>
+        </createIndex>
+        <createIndex tableName="kkd_run" indexName="idx_kkd_run_compared_to_run_id">
+            <column name="compared_to_run_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="kkd_run" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

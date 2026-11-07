@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="007-create-kkd-run-metric" author="developer">
+        <createTable tableName="kkd_run_metric">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_kkd_run_metric"
+                             nullable="false"/>
+            </column>
+            <column name="run_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_code" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="NUMERIC(18,4)"/>
+            <column name="calculated_at" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_run_metric"
+                baseColumnNames="run_id"
+                constraintName="fk_kkd_run_metric_run"
+                referencedTableName="kkd_run"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_run_metric"
+                baseColumnNames="unit_id"
+                constraintName="fk_kkd_run_metric_unit"
+                referencedTableName="unit"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+
+        <addUniqueConstraint
+                tableName="kkd_run_metric"
+                columnNames="run_id, unit_id, metric_code"
+                constraintName="uk_kkd_run_metric_run_unit_code"/>
+
+        <createIndex tableName="kkd_run_metric" indexName="idx_kkd_run_metric_unit_id">
+            <column name="unit_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="kkd_run_metric" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

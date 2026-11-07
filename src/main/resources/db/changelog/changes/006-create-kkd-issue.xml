@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="006-create-kkd-issue" author="developer">
+
+        <createTable tableName="kkd_issue">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_kkd_issue"
+                             nullable="false"/>
+            </column>
+
+            <column name="run_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="rule_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="unit_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="object_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="object_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="severity" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="description" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="detected_at"
+                    type="TIMESTAMPTZ"
+                    defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_issue"
+                baseColumnNames="run_id"
+                constraintName="fk_kkd_issue_run"
+                referencedTableName="kkd_run"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_issue"
+                baseColumnNames="rule_id"
+                constraintName="fk_kkd_issue_rule"
+                referencedTableName="kkd_rule"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="kkd_issue"
+                baseColumnNames="unit_id"
+                constraintName="fk_kkd_issue_unit"
+                referencedTableName="unit"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+
+        <sql>
+            ALTER TABLE kkd_issue
+                ADD CONSTRAINT chk_kkd_issue_object_type
+                    CHECK (object_type IN ('GOAL', 'KEY_RESULT'));
+
+            ALTER TABLE kkd_issue
+                ADD CONSTRAINT chk_kkd_issue_severity
+                    CHECK (severity IN ('CRITICAL', 'MAJOR', 'MINOR'));
+        </sql>
+
+        <createIndex tableName="kkd_issue"
+                     indexName="idx_kkd_issue_run_id">
+            <column name="run_id"/>
+        </createIndex>
+
+        <createIndex tableName="kkd_issue"
+                     indexName="idx_kkd_issue_rule_id">
+            <column name="rule_id"/>
+        </createIndex>
+
+        <createIndex tableName="kkd_issue"
+                     indexName="idx_kkd_issue_object">
+            <column name="object_type"/>
+            <column name="object_id"/>
+        </createIndex>
+
+        <createIndex tableName="kkd_issue"
+                     indexName="idx_kkd_issue_run_severity">
+            <column name="run_id"/>
+            <column name="severity"/>
+        </createIndex>
+
+        <addUniqueConstraint
+                tableName="kkd_issue"
+                columnNames="run_id, rule_id, object_type, object_id"
+                constraintName="uk_kkd_issue_run_rule_object"/>
+
+        <rollback>
+            <dropTable tableName="kkd_issue"
+                       cascadeConstraints="true"/>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

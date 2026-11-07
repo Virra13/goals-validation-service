@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kkd_db}
+      POSTGRES_USER: ${DB_USER:-kkd}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kkd}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  kkd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-kkd_db}
+      DB_USER: ${DB_USER:-kkd}
+      DB_PASSWORD: ${DB_PASSWORD:-kkd}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

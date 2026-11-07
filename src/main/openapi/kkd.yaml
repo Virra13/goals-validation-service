@@ -1,0 +1,342 @@
+openapi: 3.1.0
+info:
+  title: API контроля качества данных
+  version: 1.0.0
+  description: Сводка, проблемы и история прогонов контроля качества целей и ключевых результатов.
+
+paths:
+  /api/runs:
+    get:
+      tags: [Runs]
+      operationId: listRuns
+      summary: Получить список прогонов
+      responses:
+        '200':
+          description: Список прогонов от новых к старым по дате снимка и ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunListResponse'
+
+  /api/kkd/summary:
+    get:
+      tags: [Summary]
+      operationId: getSummary
+      summary: Получить сводку ККД
+      description: |
+        Возвращает метрики и проблемы выбранного подразделения вместе со всеми его потомками.
+        Прогон сравнивается с явно указанным предыдущим прогоном.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/UnitId'
+      responses:
+        '200':
+          description: Сводка ККД для прогона и подразделения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '422':
+          $ref: '#/components/responses/InvalidParameter'
+
+  /api/kkd/issues:
+    get:
+      tags: [Issues]
+      operationId: listIssues
+      summary: Получить страницу проблем
+      description: Проблемы отсортированы по возрастанию ID.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - name: unit_id
+          in: query
+          description: ID подразделения. Фильтр включает всех его потомков.
+          schema:
+            $ref: '#/components/schemas/PositiveId'
+        - name: rule_code
+          in: query
+          description: Код правила из справочника ККД.
+          schema:
+            type: string
+          example: GOAL_NO_KR
+        - name: severity
+          in: query
+          description: Уровень важности проблемы.
+          schema:
+            $ref: '#/components/schemas/Severity'
+        - name: limit
+          in: query
+          description: Максимальное количество проблем на странице.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 500
+            default: 5
+        - name: offset
+          in: query
+          description: Количество подходящих проблем, которые нужно пропустить.
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Страница проблем и количество записей до применения пагинации.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueListResponse'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '422':
+          $ref: '#/components/responses/InvalidParameter'
+
+components:
+  parameters:
+    RunId:
+      name: run_id
+      in: query
+      required: true
+      description: Числовой ID прогона.
+      schema:
+        $ref: '#/components/schemas/PositiveId'
+      example: 2
+    UnitId:
+      name: unit_id
+      in: query
+      required: true
+      description: Числовой ID подразделения.
+      schema:
+        $ref: '#/components/schemas/PositiveId'
+      example: 1
+
+  responses:
+    ResourceNotFound:
+      description: Прогон или подразделение не найдено.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            error:
+              code: RESOURCE_NOT_FOUND
+              message: Прогон 999 не найден
+    InvalidParameter:
+      description: Обязательный параметр отсутствует или передано недопустимое значение.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            error:
+              code: INVALID_PARAMETER
+              message: Некорректное значение параметра run_id
+
+  schemas:
+    PositiveId:
+      type: integer
+      format: int64
+      minimum: 1
+    IssueCount:
+      type: integer
+      format: int64
+      minimum: 0
+    Severity:
+      type: string
+      enum: [critical, major, minor]
+    RunStatus:
+      type: string
+      enum: [PENDING, RUNNING, COMPLETED, FAILED]
+    IssueObjectType:
+      type: string
+      enum: [GOAL, KEY_RESULT]
+    MetricCode:
+      type: string
+      enum: [clean_goals_share, issues_per_goal, goals_with_owner_share, goals_with_valid_kr_weights_share]
+    MetricUnit:
+      type: string
+      enum: ['%', count]
+    MetricTrend:
+      type: string
+      enum: [better, worse, same]
+    ApiErrorCode:
+      type: string
+      enum: [RESOURCE_NOT_FOUND, INVALID_PARAMETER]
+
+    RunListResponse:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunResponse'
+    RunResponse:
+      type: object
+      required: [id, status, snapshot_date, compared_to_run_id, issues_count]
+      properties:
+        id:
+          $ref: '#/components/schemas/PositiveId'
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        snapshot_date:
+          type: string
+          format: date
+        compared_to_run_id:
+          type: [integer, 'null']
+          format: int64
+          minimum: 1
+          description: Числовой ID прогона для сравнения или null.
+        issues_count:
+          $ref: '#/components/schemas/IssueCount'
+
+    SummaryResponse:
+      type: object
+      required: [run, compared_to, unit, metrics, issues_by_severity, delta]
+      properties:
+        run:
+          $ref: '#/components/schemas/RunSnapshotResponse'
+        compared_to:
+          description: Прогон для сравнения или null, если его нет.
+          anyOf:
+            - $ref: '#/components/schemas/RunSnapshotResponse'
+            - type: 'null'
+        unit:
+          $ref: '#/components/schemas/SummaryUnitResponse'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SummaryMetricResponse'
+        issues_by_severity:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeverityResponse'
+        delta:
+          description: Счётчики изменений проблем или null, если сравнения нет.
+          anyOf:
+            - $ref: '#/components/schemas/IssueDeltaResponse'
+            - type: 'null'
+    RunSnapshotResponse:
+      type: object
+      required: [id, snapshot_date]
+      properties:
+        id:
+          type: string
+          pattern: '^RUN-[0-9]{3,}$'
+          example: RUN-002
+        snapshot_date:
+          type: string
+          format: date
+    SummaryUnitResponse:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          $ref: '#/components/schemas/PositiveId'
+        name:
+          type: string
+    SummaryMetricResponse:
+      type: object
+      required: [key, title, unit, value, previous, delta, trend]
+      properties:
+        key:
+          $ref: '#/components/schemas/MetricCode'
+        title:
+          type: string
+        unit:
+          $ref: '#/components/schemas/MetricUnit'
+        value:
+          type: [number, 'null']
+          description: Текущее значение метрики или null, если оно не определено.
+        previous:
+          type: [number, 'null']
+          description: Предыдущее значение метрики или null, если его нет.
+        delta:
+          type: [number, 'null']
+          description: Текущее значение минус предыдущее или null, если одного из них нет.
+        trend:
+          anyOf:
+            - $ref: '#/components/schemas/MetricTrend'
+            - type: 'null'
+    SeverityResponse:
+      type: object
+      required: [code, current, previous, delta]
+      properties:
+        code:
+          $ref: '#/components/schemas/Severity'
+        current:
+          $ref: '#/components/schemas/IssueCount'
+        previous:
+          type: [integer, 'null']
+          format: int64
+          minimum: 0
+          description: Предыдущее количество проблем или null, если сравнения нет.
+        delta:
+          type: [integer, 'null']
+          format: int64
+          description: Изменение количества проблем или null, если сравнения нет.
+    IssueDeltaResponse:
+      type: object
+      required: [new, persisting, resolved]
+      properties:
+        new:
+          $ref: '#/components/schemas/IssueCount'
+        persisting:
+          $ref: '#/components/schemas/IssueCount'
+        resolved:
+          $ref: '#/components/schemas/IssueCount'
+
+    IssueListResponse:
+      type: object
+      required: [content, limit, offset, total]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueResponse'
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 500
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        total:
+          $ref: '#/components/schemas/IssueCount'
+    IssueResponse:
+      type: object
+      required: [id, rule_code, object_type, object_id, severity, description]
+      properties:
+        id:
+          $ref: '#/components/schemas/PositiveId'
+        rule_code:
+          type: string
+          example: GOAL_NO_KR
+        object_type:
+          $ref: '#/components/schemas/IssueObjectType'
+        object_id:
+          $ref: '#/components/schemas/PositiveId'
+        severity:
+          $ref: '#/components/schemas/Severity'
+        description:
+          type: string
+
+    ApiErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/ApiError'
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          $ref: '#/components/schemas/ApiErrorCode'
+        message:
+          type: string

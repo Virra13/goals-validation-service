@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <changeSet id="010-insert-goals" author="developer">
+        <insert tableName="goal">
+            <column name="id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="title" value="Повысить стабильность цифровых каналов"/>
+            <column name="owner_id" value="USR-1001"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="title" value="Сократить время вывода продуктовых изменений"/>
+            <column name="owner_id" value="USR-1002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="3"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="title" value="Повысить прозрачность продуктовых метрик"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-25"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="4"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="title" value="Завершить переход на единый каталог сервисов"/>
+            <column name="owner_id" value="USR-1004"/>
+            <column name="status" value="COMPLETED"/>
+            <column name="deadline" valueDate="2026-09-30"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="5"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="parent_goal_id" valueNumeric="1"/>
+            <column name="title" value="Повысить качество клиентского онбординга"/>
+            <column name="owner_id" value="USR-2001"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-15"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="6"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="parent_goal_id" valueNumeric="1"/>
+            <column name="title" value="Сократить долю обращений в поддержку"/>
+            <column name="owner_id" value="USR-2002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="7"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="parent_goal_id" valueNumeric="2"/>
+            <column name="title" value="Ускорить обработку клиентских заявок"/>
+            <column name="owner_id" value="USR-2003"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-10"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="8"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="parent_goal_id" valueNumeric="2"/>
+            <column name="title" value="Повысить доступность клиентского кабинета"/>
+            <column name="owner_id" value="USR-2004"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="9"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="parent_goal_id" valueNumeric="1"/>
+            <column name="title" value="Снизить количество инцидентов платформы"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="10"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="parent_goal_id" valueNumeric="1"/>
+            <column name="title" value="Ускорить сборку и доставку backend-сервисов"/>
+            <column name="owner_id" value="USR-3002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="11"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="parent_goal_id" valueNumeric="3"/>
+            <column name="title" value="Повысить наблюдаемость распределённых сервисов"/>
+            <column name="owner_id" value="USR-3003"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-25"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="12"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="parent_goal_id" valueNumeric="3"/>
+            <column name="title" value="Стандартизировать шаблоны новых сервисов"/>
+            <column name="owner_id" value="USR-3004"/>
+            <column name="status" value="COMPLETED"/>
+            <column name="deadline" valueDate="2026-10-01"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="13"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="parent_goal_id" valueNumeric="5"/>
+            <column name="title" value="Сократить время обработки корпоративных заявок"/>
+            <column name="owner_id" value="USR-4001"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-15"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="14"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="parent_goal_id" valueNumeric="5"/>
+            <column name="title" value="Автоматизировать типовые операции сопровождения"/>
+            <column name="owner_id" value="USR-4002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="15"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="parent_goal_id" valueNumeric="6"/>
+            <column name="title" value="Повысить качество справочных данных клиентов"/>
+            <column name="owner_id" value="USR-4003"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="16"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="parent_goal_id" valueNumeric="8"/>
+            <column name="title" value="Снизить количество ручных корректировок заявок"/>
+            <column name="owner_id" value="USR-4004"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-25"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="17"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="parent_goal_id" valueNumeric="9"/>
+            <column name="title" value="Повысить надёжность API-платформы"/>
+            <column name="owner_id" value="USR-5001"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="18"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="parent_goal_id" valueNumeric="10"/>
+            <column name="title" value="Сократить время восстановления сервисов"/>
+            <column name="owner_id" value="USR-5002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="19"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="parent_goal_id" valueNumeric="10"/>
+            <column name="title" value="Ускорить миграцию сервисов на стандартный runtime"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="20"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="parent_goal_id" valueNumeric="11"/>
+            <column name="title" value="Повысить покрытие сервисов техническими метриками"/>
+            <column name="owner_id" value="USR-5004"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-25"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="21"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="parent_goal_id" valueNumeric="9"/>
+            <column name="title" value="Повысить качество корпоративных данных"/>
+            <column name="owner_id" value="USR-6001"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="22"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="parent_goal_id" valueNumeric="11"/>
+            <column name="title" value="Снизить задержки интеграционных потоков"/>
+            <column name="owner_id" value="USR-6002"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="deadline" valueDate="2026-12-20"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="23"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="parent_goal_id" valueNumeric="21"/>
+            <column name="title" value="Подготовить концепцию каталога владельцев данных"/>
+            <column name="owner_id" value="USR-6003"/>
+            <column name="status" value="DRAFT"/>
+            <column name="deadline" valueDate="2027-01-31"/>
+        </insert>
+
+        <insert tableName="goal">
+            <column name="id" valueNumeric="24"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="parent_goal_id" valueNumeric="22"/>
+            <column name="title" value="Перевести пакетные интеграции на устаревший шлюз"/>
+            <column name="status" value="CANCELLED"/>
+            <column name="deadline" valueDate="2026-11-30"/>
+        </insert>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('goal', 'id'), (SELECT MAX(id) FROM goal), true);
+        </sql>
+
+        <rollback>
+            <delete tableName="goal"><where>id BETWEEN 1 AND 24</where></delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

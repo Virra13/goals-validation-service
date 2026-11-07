@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <changeSet id="014-insert-kkd-run-metrics" author="developer">
+        <!-- В обоих демопрогонах используются 20 активных целей с одинаковым распределением
+             по подразделениям. Метрики рассчитаны по списку проблем каждого прогона из 013. -->
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="1"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="65.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="2"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.3500"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="3"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="90.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="4"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="89.4737"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="5"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="75.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="6"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.2500"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="7"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="87.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="8"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="87.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="9"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="66.6667"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="10"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.3333"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="11"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="12"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="88.8889"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="13"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="14"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="15"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="16"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="17"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="75.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="18"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.2500"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="19"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="20"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="21"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="22"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="23"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="24"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="25"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="50.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="26"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="27"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="85.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="28"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="88.8889"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="29"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="62.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="30"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.3750"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="31"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="32"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="71.4286"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="33"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="44.4444"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="34"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.5556"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="35"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="77.7778"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="36"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="37"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="50.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="38"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="39"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="40"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="66.6667"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="41"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="50.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="42"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="43"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="75.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="44"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="45"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="clean_goals_share"/>
+            <column name="value" valueNumeric="50.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="46"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="issues_per_goal"/>
+            <column name="value" valueNumeric="0.5000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="47"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="goals_with_owner_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <insert tableName="kkd_run_metric">
+            <column name="id" valueNumeric="48"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="metric_code" value="goals_with_valid_kr_weights_share"/>
+            <column name="value" valueNumeric="100.0000"/>
+        </insert>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('kkd_run_metric', 'id'), (SELECT MAX(id) FROM kkd_run_metric), true);
+        </sql>
+
+        <rollback>
+            <delete tableName="kkd_run_metric"><where>id BETWEEN 1 AND 48</where></delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

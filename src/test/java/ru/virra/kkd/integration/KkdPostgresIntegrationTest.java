@@ -1,0 +1,181 @@
+package ru.virra.kkd.integration;
+
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.SessionFactory;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import ru.virra.kkd.domain.metric.MetricKey;
+import ru.virra.kkd.exception.InvalidKkdParameterException;
+import ru.virra.kkd.service.KkdRunExecutionService;
+import ru.virra.kkd.service.KkdSummaryService;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/** Requires a dedicated disposable database, never an IFT/production database. */
+@EnabledIfEnvironmentVariable(named = "KKD_TEST_DB_URL", matches = ".+")
+@SpringBootTest(properties = {
+        "spring.jpa.properties.hibernate.generate_statistics=true",
+        "logging.level.org.hibernate.engine.internal.StatisticalLoggingSessionEventListener=OFF"
+})
+@AutoConfigureMockMvc
+@Import(KkdPostgresIntegrationTest.FixedTime.class)
+class KkdPostgresIntegrationTest {
+    @DynamicPropertySource
+    static void database(DynamicPropertyRegistry properties) {
+        properties.add("spring.datasource.url", () -> System.getenv("KKD_TEST_DB_URL"));
+        properties.add("spring.datasource.username", () -> System.getenv("KKD_TEST_DB_USER"));
+        properties.add("spring.datasource.password", () -> System.getenv().getOrDefault("KKD_TEST_DB_PASSWORD", ""));
+    }
+
+    @TestConfiguration
+    static class FixedTime {
+        @Bean
+        Clock fixedClock() {
+            return Clock.fixed(Instant.parse("2026-10-26T12:00:00Z"), ZoneOffset.UTC);
+        }
+    }
+
+    @Autowired KkdRunExecutionService execution;
+    @Autowired KkdSummaryService summaries;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired EntityManagerFactory emf;
+    @Autowired MockMvc mvc;
+
+    @Test
+    void persistsCompleteRunAndReadsItsMetricsThroughProjection() {
+        long id = execution.execute(2L);
+        try {
+            assertEquals("COMPLETED", jdbc.queryForObject("select status from kkd_run where id=?", String.class, id));
+            assertEquals(24L, count("select count(*) from kkd_run_metric where run_id=?", id));
+            assertEquals(10L, count("select count(*) from kkd_issue where run_id=?", id));
+            var summary = summaries.getSummary(id, 1);
+            assertEquals(new BigDecimal("50.0000"), summary.metrics().get(MetricKey.CLEAN_GOALS_SHARE).value());
+            assertEquals(0, summary.delta().newCount());
+            assertEquals(10, summary.delta().persisting());
+            assertEquals(0, summary.delta().resolved());
+        } finally {
+            deleteRun(id);
+        }
+    }
+
+    @Test
+    void queryCountDoesNotGrowWithNumberOfUnits() {
+        var stats = emf.unwrap(SessionFactory.class).getStatistics();
+        stats.clear();
+        long firstRun = execution.execute(null);
+        long baseline = stats.getPrepareStatementCount();
+        List<Long> extraUnits = new ArrayList<>();
+        Long secondRun = null;
+        try {
+            for (int i = 0; i < 100; i++) {
+                extraUnits.add(jdbc.queryForObject(
+                        "insert into unit(name,parent_id) values ('integration-unit',1) returning id", Long.class));
+            }
+            stats.clear();
+            secondRun = execution.execute(null);
+            assertEquals(baseline, stats.getPrepareStatementCount(), "JPA statement count must not grow with units");
+            assertEquals(424L, count("select count(*) from kkd_run_metric where run_id=?", secondRun));
+            assertEquals(400L, count("select count(*) from kkd_run_metric where run_id=? and value is null", secondRun));
+        } finally {
+            if (secondRun != null) deleteRun(secondRun);
+            deleteRun(firstRun);
+            extraUnits.forEach(id -> jdbc.update("delete from unit where id=?", id));
+        }
+    }
+
+    @Test
+    void batchesMoreThanOneChunkOfIssues() {
+        List<Long> extraGoals = new ArrayList<>();
+        Long runId = null;
+        try {
+            for (int i = 0; i < 300; i++) {
+                extraGoals.add(jdbc.queryForObject("""
+                        insert into goal(unit_id,title,status) values (1,'integration-goal','ACTIVE') returning id
+                        """, Long.class));
+            }
+            runId = execution.execute(null);
+            assertEquals(610L, count("select count(*) from kkd_issue where run_id=?", runId));
+        } finally {
+            if (runId != null) deleteRun(runId);
+            extraGoals.forEach(id -> jdbc.update("delete from goal where id=?", id));
+        }
+    }
+
+    @Test
+    void rollsBackJpaRunAndJdbcIssuesWhenMetricInsertFails() {
+        long runs = count("select count(*) from kkd_run");
+        long issues = count("select count(*) from kkd_issue");
+        long metrics = count("select count(*) from kkd_run_metric");
+        jdbc.execute("alter table kkd_run_metric add constraint integration_reject_new_runs check (run_id <= 2)");
+        try {
+            assertThrows(DataAccessException.class, () -> execution.execute(2L));
+            assertEquals(runs, count("select count(*) from kkd_run"));
+            assertEquals(issues, count("select count(*) from kkd_issue"));
+            assertEquals(metrics, count("select count(*) from kkd_run_metric"));
+        } finally {
+            jdbc.execute("alter table kkd_run_metric drop constraint integration_reject_new_runs");
+        }
+    }
+
+    @Test
+    void rejectsUnfinishedComparisonRun() {
+        long id = jdbc.queryForObject("""
+                insert into kkd_run(status,snapshot_date) values ('RUNNING',now()) returning id
+                """, Long.class);
+        try {
+            assertThrows(InvalidKkdParameterException.class, () -> execution.execute(id));
+        } finally {
+            deleteRun(id);
+        }
+    }
+
+    @Test
+    void apiPreservesFirstRunNullsAndDatabaseFilters() throws Exception {
+        mvc.perform(get("/api/kkd/summary?run_id=1&unit_id=1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("\"compared_to\":null")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("\"delta\":null")))
+                .andExpect(jsonPath("$.metrics.length()").value(4));
+        mvc.perform(get("/api/kkd/issues?run_id=2&unit_id=2&rule_code=GOAL_NO_KR&severity=critical"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.content[0].object_id").value(14));
+        mvc.perform(get("/api/kkd/issues?run_id=2&offset=5"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(10))
+                .andExpect(jsonPath("$.content.length()").value(5));
+        mvc.perform(get("/api/kkd/summary?run_id=999999&unit_id=1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("RESOURCE_NOT_FOUND"));
+        mvc.perform(get("/api/kkd/issues?run_id=2&unit_id=999999"))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/kkd/issues?run_id=2&rule_code=UNKNOWN"))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    private long count(String sql, Object... args) {
+        return jdbc.queryForObject(sql, Long.class, args);
+    }
+
+    private void deleteRun(long id) {
+        jdbc.update("delete from kkd_run where id=?", id);
+    }
+}

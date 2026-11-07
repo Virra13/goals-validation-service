@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="002-create-goal" author="developer">
+        <createTable tableName="goal">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"
+                             primaryKeyName="pk_goal"
+                             nullable="false"/>
+            </column>
+            <column name="unit_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_goal_id" type="BIGINT"/>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="VARCHAR(100)"/>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deadline" type="DATE"/>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMPTZ" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="goal"
+                baseColumnNames="unit_id"
+                constraintName="fk_goal_unit"
+                referencedTableName="unit"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="goal"
+                baseColumnNames="parent_goal_id"
+                constraintName="fk_goal_parent"
+                referencedTableName="goal"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <sql>
+            ALTER TABLE goal
+            ADD CONSTRAINT chk_goal_status
+            CHECK (status IN ('DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELLED'));
+
+            ALTER TABLE goal
+            ADD CONSTRAINT chk_goal_not_own_parent
+            CHECK (parent_goal_id IS NULL OR parent_goal_id &lt;&gt; id);
+        </sql>
+
+        <createIndex tableName="goal" indexName="idx_goal_unit_id">
+            <column name="unit_id"/>
+        </createIndex>
+        <createIndex tableName="goal" indexName="idx_goal_parent_goal_id">
+            <column name="parent_goal_id"/>
+        </createIndex>
+        <createIndex tableName="goal" indexName="idx_goal_status">
+            <column name="status"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="goal" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="008-insert-kkd-rules" author="developer">
+        <insert tableName="kkd_rule">
+            <column name="code" value="GOAL_NO_OWNER"/>
+            <column name="name" value="Активная цель без ответственного"/>
+            <column name="description" value="Активная цель не имеет назначенного ответственного."/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="kkd_rule">
+            <column name="code" value="GOAL_NO_KR"/>
+            <column name="name" value="Активная цель без ключевых результатов"/>
+            <column name="description" value="У активной цели отсутствуют связанные ключевые результаты."/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="kkd_rule">
+            <column name="code" value="KR_WEIGHTS_SUM"/>
+            <column name="name" value="Некорректная сумма весов ключевых результатов"/>
+            <column name="description" value="Сумма весов ключевых результатов активной цели не равна 100 процентам."/>
+            <column name="severity" value="MAJOR"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="kkd_rule">
+            <column name="code" value="KR_STALE_PROGRESS"/>
+            <column name="name" value="Давно не обновлялся факт ключевого результата"/>
+            <column name="description" value="Факт ключевого результата не обновлялся более 45 дней."/>
+            <column name="severity" value="MINOR"/>
+            <column name="is_active" valueBoolean="true"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="kkd_rule">
+                <where>code IN ('GOAL_NO_OWNER', 'GOAL_NO_KR', 'KR_WEIGHTS_SUM', 'KR_STALE_PROGRESS')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

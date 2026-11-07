@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+    <changeSet id="013-insert-kkd-issues" author="developer">
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="1"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_KR')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="2"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствуют ключевые результаты."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="2"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_OWNER')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="3"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствует ответственный."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="3"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_WEIGHTS_SUM')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="6"/>
+            <column name="severity" value="MAJOR"/>
+            <column name="description" value="Сумма весов ключевых результатов активной цели не равна 100."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="4"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_STALE_PROGRESS')"/>
+            <column name="object_type" value="KEY_RESULT"/>
+            <column name="object_id" valueNumeric="24"/>
+            <column name="severity" value="MINOR"/>
+            <column name="description" value="Дата последнего обновления факта ключевого результата отсутствует."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="5"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_OWNER')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="5"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствует ответственный."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="6"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_WEIGHTS_SUM')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="10"/>
+            <column name="severity" value="MAJOR"/>
+            <column name="description" value="Сумма весов ключевых результатов активной цели не равна 100."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="7"/>
+            <column name="run_id" valueNumeric="1"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_STALE_PROGRESS')"/>
+            <column name="object_type" value="KEY_RESULT"/>
+            <column name="object_id" valueNumeric="35"/>
+            <column name="severity" value="MINOR"/>
+            <column name="description" value="Факт ключевого результата не обновлялся более 45 дней."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="8"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_KR')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="2"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствуют ключевые результаты."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="9"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="1"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_OWNER')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="3"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствует ответственный."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="10"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="2"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_WEIGHTS_SUM')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="6"/>
+            <column name="severity" value="MAJOR"/>
+            <column name="description" value="Сумма весов ключевых результатов активной цели равна 99, а должна быть 100."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="11"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_OWNER')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="9"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствует ответственный."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="12"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="3"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_STALE_PROGRESS')"/>
+            <column name="object_type" value="KEY_RESULT"/>
+            <column name="object_id" valueNumeric="24"/>
+            <column name="severity" value="MINOR"/>
+            <column name="description" value="Дата последнего обновления факта ключевого результата отсутствует."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="13"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_KR')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="14"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствуют ключевые результаты."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="14"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="4"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_WEIGHTS_SUM')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="15"/>
+            <column name="severity" value="MAJOR"/>
+            <column name="description" value="Сумма весов ключевых результатов активной цели равна 101, а должна быть 100."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="15"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_STALE_PROGRESS')"/>
+            <column name="object_type" value="KEY_RESULT"/>
+            <column name="object_id" valueNumeric="37"/>
+            <column name="severity" value="MINOR"/>
+            <column name="description" value="Факт ключевого результата не обновлялся более 45 дней."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="16"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="5"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'GOAL_NO_OWNER')"/>
+            <column name="object_type" value="GOAL"/>
+            <column name="object_id" valueNumeric="19"/>
+            <column name="severity" value="CRITICAL"/>
+            <column name="description" value="У активной цели отсутствует ответственный."/>
+        </insert>
+
+        <insert tableName="kkd_issue">
+            <column name="id" valueNumeric="17"/>
+            <column name="run_id" valueNumeric="2"/>
+            <column name="unit_id" valueNumeric="6"/>
+            <column name="rule_id" valueComputed="(SELECT id FROM kkd_rule WHERE code = 'KR_STALE_PROGRESS')"/>
+            <column name="object_type" value="KEY_RESULT"/>
+            <column name="object_id" valueNumeric="50"/>
+            <column name="severity" value="MINOR"/>
+            <column name="description" value="Факт ключевого результата не обновлялся более 45 дней."/>
+        </insert>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('kkd_issue', 'id'), (SELECT MAX(id) FROM kkd_issue), true);
+        </sql>
+
+        <rollback>
+            <delete tableName="kkd_issue"><where>id BETWEEN 1 AND 17</where></delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
