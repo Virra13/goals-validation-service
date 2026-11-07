@@ -64,8 +64,8 @@ $env:KKD_TEST_DB_PASSWORD = 'kkd'
 ```bash
 docker compose exec postgres createdb -U kkd kkd_migration_check
 export DB_URL=jdbc:postgresql://localhost:5432/kkd_migration_check
-export DB_USER=kkd
-export DB_PASSWORD=kkd
+export DB_USER=user
+export DB_PASSWORD=12345
 ./mvnw process-resources liquibase:update
 ./mvnw liquibase:rollback -Dliquibase.rollbackCount=14
 ./mvnw liquibase:update
