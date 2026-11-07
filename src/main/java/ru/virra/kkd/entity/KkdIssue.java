@@ -30,7 +30,8 @@ import java.time.Instant;
 public class KkdIssue {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "kkd_issue_id")
+    @SequenceGenerator(name = "kkd_issue_id", sequenceName = "kkd_issue_seq", allocationSize = 50)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

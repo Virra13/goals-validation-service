@@ -85,8 +85,7 @@ public class KkdRunExecutionService {
         run.setStartedAt(startedAt);
         run.setSnapshotDate(startedAt);
         run.setComparedToRun(comparedTo);
-        // JDBC writes use the same DataSource/transaction; flush the parent before its FK children.
-        runs.saveAndFlush(run);
+        runs.save(run);
         results.saveIssues(run.getId(), findings, unitByGoal, ruleIds, startedAt);
         results.saveMetrics(run.getId(), values, startedAt);
         run.setCompletedAt(clock.instant());

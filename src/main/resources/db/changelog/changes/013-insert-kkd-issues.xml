@@ -194,7 +194,8 @@
         </insert>
 
         <sql>
-            SELECT setval(pg_get_serial_sequence('kkd_issue', 'id'), (SELECT MAX(id) FROM kkd_issue), true);
+            -- Hibernate's pooled optimizer treats the next sequence value as the upper ID bound.
+            SELECT setval('kkd_issue_seq', (SELECT COALESCE(MAX(id), 0) + 50 FROM kkd_issue), false);
         </sql>
 
         <rollback>

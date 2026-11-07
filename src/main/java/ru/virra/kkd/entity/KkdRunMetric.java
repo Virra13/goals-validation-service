@@ -28,7 +28,8 @@ import java.time.Instant;
 public class KkdRunMetric {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "kkd_run_metric_id")
+    @SequenceGenerator(name = "kkd_run_metric_id", sequenceName = "kkd_run_metric_seq", allocationSize = 50)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

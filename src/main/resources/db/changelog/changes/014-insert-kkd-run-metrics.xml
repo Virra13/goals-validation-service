@@ -393,7 +393,8 @@
         </insert>
 
         <sql>
-            SELECT setval(pg_get_serial_sequence('kkd_run_metric', 'id'), (SELECT MAX(id) FROM kkd_run_metric), true);
+            -- Keep the entire next allocationSize=50 block above the seeded identifiers.
+            SELECT setval('kkd_run_metric_seq', (SELECT COALESCE(MAX(id), 0) + 50 FROM kkd_run_metric), false);
         </sql>
 
         <rollback>

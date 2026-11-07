@@ -1,64 +1,70 @@
 package ru.virra.kkd.repository;
 
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
-import ru.virra.kkd.domain.model.IssueObjectType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.virra.kkd.domain.model.Severity;
+import ru.virra.kkd.entity.KkdIssue;
+import ru.virra.kkd.entity.KkdRule;
 import ru.virra.kkd.readmodel.IssueListItem;
 import ru.virra.kkd.readmodel.IssuePage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+@Transactional(readOnly = true)
 public class KkdIssueSearchRepository {
+    private final EntityManager entityManager;
 
-    private final NamedParameterJdbcTemplate jdbc;
-
-    public KkdIssueSearchRepository(NamedParameterJdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public KkdIssueSearchRepository(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     public IssuePage findPage(long runId, List<Long> unitIds, String ruleCode,
                               Severity severity, int limit, int offset) {
-        StringBuilder filter = new StringBuilder("""
-                FROM kkd_issue i
-                JOIN kkd_rule r ON r.id = i.rule_id
-                WHERE i.run_id = :runId
-                """);
-        MapSqlParameterSource params = new MapSqlParameterSource("runId", runId);
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<KkdIssue> counted = countQuery.from(KkdIssue.class);
+        Join<KkdIssue, KkdRule> countedRule = counted.join("rule");
+        countQuery.select(cb.count(counted)).where(
+                filters(cb, counted, countedRule, runId, unitIds, ruleCode, severity));
+        long total = entityManager.createQuery(countQuery).getSingleResult();
 
+        CriteriaQuery<IssueListItem> pageQuery = cb.createQuery(IssueListItem.class);
+        Root<KkdIssue> issue = pageQuery.from(KkdIssue.class);
+        Join<KkdIssue, KkdRule> rule = issue.join("rule");
+        pageQuery.select(cb.construct(IssueListItem.class,
+                        issue.get("id"), rule.get("code"), issue.get("objectType"),
+                        issue.get("objectId"), issue.get("severity"), issue.get("description")))
+                .where(filters(cb, issue, rule, runId, unitIds, ruleCode, severity))
+                .orderBy(cb.asc(issue.get("id")));
+        List<IssueListItem> content = entityManager.createQuery(pageQuery)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+        return new IssuePage(content, limit, offset, total);
+    }
+
+    private static Predicate[] filters(CriteriaBuilder cb, Root<KkdIssue> issue,
+                                        Join<KkdIssue, KkdRule> rule, long runId,
+                                        List<Long> unitIds, String ruleCode, Severity severity) {
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.equal(issue.get("run").get("id"), runId));
         if (unitIds != null) {
-            filter.append(" AND i.unit_id IN (:unitIds)");
-            params.addValue("unitIds", unitIds);
+            predicates.add(issue.get("unitId").in(unitIds));
         }
         if (ruleCode != null) {
-            filter.append(" AND r.code = :ruleCode");
-            params.addValue("ruleCode", ruleCode);
+            predicates.add(cb.equal(rule.get("code"), ruleCode));
         }
         if (severity != null) {
-            filter.append(" AND i.severity = :severity");
-            params.addValue("severity", severity.name());
+            predicates.add(cb.equal(issue.get("severity"), severity));
         }
-
-        String fromAndWhere = filter.toString();
-        long total = jdbc.queryForObject("SELECT count(*) " + fromAndWhere, params, Long.class);
-
-        params.addValue("limit", limit);
-        params.addValue("offset", offset);
-        String pageSql = """
-                SELECT i.id, r.code, i.object_type, i.object_id, i.severity, i.description
-                """ + fromAndWhere + " ORDER BY i.id LIMIT :limit OFFSET :offset";
-
-        List<IssueListItem> content = jdbc.query(pageSql, params, (rs, rowNumber) ->
-                new IssueListItem(
-                        rs.getLong("id"),
-                        rs.getString("code"),
-                        IssueObjectType.valueOf(rs.getString("object_type")),
-                        rs.getLong("object_id"),
-                        Severity.valueOf(rs.getString("severity")),
-                        rs.getString("description")));
-
-        return new IssuePage(content, limit, offset, total);
+        return predicates.toArray(Predicate[]::new);
     }
 }
