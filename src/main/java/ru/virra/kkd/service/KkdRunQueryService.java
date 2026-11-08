@@ -1,5 +1,6 @@
 package ru.virra.kkd.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.virra.kkd.readmodel.RunListItem;
@@ -14,6 +15,7 @@ import java.util.List;
  * для сравнения и количество найденных проблем.
  */
 @Service
+@Slf4j
 public class KkdRunQueryService {
 
     private final KkdRunRepository runs;
@@ -30,7 +32,7 @@ public class KkdRunQueryService {
      */
     @Transactional(readOnly = true)
     public List<RunListItem> listRuns() {
-        return runs.findRunList().stream()
+        List<RunListItem> result = runs.findRunList().stream()
                 .map(row -> new RunListItem(
                         row.id(),
                         row.status(),
@@ -38,5 +40,7 @@ public class KkdRunQueryService {
                         row.comparedToRunId(),
                         row.issuesCount()))
                 .toList();
+        log.info("Получен список прогонов ККД: количество={}", result.size());
+        return result;
     }
 }

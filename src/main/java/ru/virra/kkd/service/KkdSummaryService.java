@@ -1,5 +1,6 @@
 package ru.virra.kkd.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.virra.kkd.domain.comparison.IssueDelta;
@@ -40,6 +41,7 @@ import java.util.Set;
  * сравнения с прогоном, указанным в {@code compared_to_run_id}.
  */
 @Service
+@Slf4j
 public class KkdSummaryService {
 
     private final KkdRunRepository runs;
@@ -73,6 +75,7 @@ public class KkdSummaryService {
         Unit unit = findUnit(unitId);
         KkdRun previousRun = run.getComparedToRun();
         List<Long> subtreeIds = units.findSubtreeIds(unitId);
+        log.debug("Поддерево для сводки ККД: unitId={}, подразделений={}", unitId, subtreeIds.size());
 
         MetricValues currentMetrics = loadMetrics(runId, unitId);
         MetricValues previousMetrics = previousRun == null
@@ -91,8 +94,12 @@ public class KkdSummaryService {
         RunReference previousRunReference = previousRun == null ? null : reference(previousRun);
         UnitReference unitReference = new UnitReference(unit.getId(), unit.getName());
 
-        return new KkdSummary(runReference, previousRunReference, unitReference,
+        KkdSummary summary = new KkdSummary(runReference, previousRunReference, unitReference,
                 metricChanges, issuesBySeverity, issueDelta);
+        log.info("Сформирована сводка ККД: runId={}, unitId={}, comparedToRunId={}, currentIssues={}, previousIssues={}",
+                runId, unitId, previousRun == null ? null : previousRun.getId(),
+                currentIssues.size(), previousIssues == null ? null : previousIssues.size());
+        return summary;
     }
 
     private KkdRun findRun(long runId) {
@@ -111,6 +118,10 @@ public class KkdSummaryService {
         Map<String, BigDecimal> values = new HashMap<>();
         for (KkdRunMetric row : metrics.findAllByRunIdAndUnitId(runId, unitId)) {
             values.put(row.getMetricCode(), row.getValue());
+        }
+        if (values.size() != MetricKey.values().length) {
+            log.warn("Неполный набор метрик ККД: runId={}, unitId={}, найдено={}, ожидается={}",
+                    runId, unitId, values.size(), MetricKey.values().length);
         }
         return new MetricValues(
                 values.get(MetricKey.CLEAN_GOALS_SHARE.code()),

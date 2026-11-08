@@ -28,6 +28,7 @@ services:
       DB_NAME: ${DB_NAME:-kkd_db}
       DB_USER: ${DB_USER:-kkd}
       DB_PASSWORD: ${DB_PASSWORD:-kkd}
+      KKD_LOG_LEVEL: ${KKD_LOG_LEVEL:-INFO}
     depends_on:
       postgres:
         condition: service_healthy

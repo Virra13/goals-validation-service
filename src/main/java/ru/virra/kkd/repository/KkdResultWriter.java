@@ -1,6 +1,7 @@
 package ru.virra.kkd.repository;
 
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,8 @@ import java.util.Map;
  */
 @Repository
 @Transactional(propagation = Propagation.MANDATORY)
+@Slf4j
 public class KkdResultWriter {
-    // Limit retained result entities independently of Hibernate's JDBC batch size (50).
     private static final int FLUSH_INTERVAL = 250;
     private final EntityManager entityManager;
 
@@ -121,8 +122,9 @@ public class KkdResultWriter {
             return;
         }
         entityManager.flush();
-        // Do not clear the whole context: the run must remain managed for its COMPLETED update.
         pending.forEach(entityManager::detach);
+        log.debug("Записан пакет результатов ККД: тип={}, записей={}",
+                pending.get(0).getClass().getSimpleName(), pending.size());
         pending.clear();
     }
 }

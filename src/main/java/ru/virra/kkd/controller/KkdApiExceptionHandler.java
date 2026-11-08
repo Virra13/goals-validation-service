@@ -1,5 +1,7 @@
 package ru.virra.kkd.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,17 +22,20 @@ import ru.virra.kkd.openapi.model.Severity;
  * Тело ответа содержит объект {@code error} с кодом и сообщением.
  */
 @RestControllerAdvice
+@Slf4j
 public class KkdApiExceptionHandler {
 
     /**
      * Обрабатывает обращение к несуществующему прогону или подразделению.
      *
      * @param ex исключение с описанием отсутствующего ресурса
+     * @param request HTTP-запрос для указания пути в журнале
      * @return ошибка с кодом {@code RESOURCE_NOT_FOUND}
      */
     @ExceptionHandler(KkdResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiErrorResponse notFound(KkdResourceNotFoundException ex) {
+    public ApiErrorResponse notFound(KkdResourceNotFoundException ex, HttpServletRequest request) {
+        log.info("HTTP 404 ККД: path={}, причина={}", request.getRequestURI(), ex.getMessage());
         return new ApiErrorResponse(new ApiError(ApiErrorCode.RESOURCE_NOT_FOUND, ex.getMessage()));
     }
 
@@ -38,24 +43,27 @@ public class KkdApiExceptionHandler {
      * Обрабатывает параметр, не прошедший проверку контроллера или сервиса чтения.
      *
      * @param ex исключение с описанием неверного параметра
+     * @param request HTTP-запрос для указания пути в журнале
      * @return ошибка с кодом {@code INVALID_PARAMETER}
      */
     @ExceptionHandler(InvalidKkdParameterException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ApiErrorResponse invalidParameter(InvalidKkdParameterException ex) {
-        return invalid(ex.getMessage());
+    public ApiErrorResponse invalidParameter(InvalidKkdParameterException ex, HttpServletRequest request) {
+        return invalid(ex.getMessage(), request);
     }
 
     /**
      * Обрабатывает отсутствие обязательного параметра HTTP-запроса.
      *
      * @param ex исключение Spring MVC с именем отсутствующего параметра
+     * @param request HTTP-запрос для указания пути в журнале
      * @return ошибка с кодом {@code INVALID_PARAMETER}
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ApiErrorResponse missingParameter(MissingServletRequestParameterException ex) {
-        return invalid("Отсутствует обязательный параметр " + ex.getParameterName());
+    public ApiErrorResponse missingParameter(MissingServletRequestParameterException ex,
+                                             HttpServletRequest request) {
+        return invalid("Отсутствует обязательный параметр " + ex.getParameterName(), request);
     }
 
     /**
@@ -63,18 +71,22 @@ public class KkdApiExceptionHandler {
      * Для параметра {@code severity} возвращает сообщение с допустимыми значениями важности.
      *
      * @param ex исключение Spring MVC с именем параметра и ожидаемым типом
+     * @param request HTTP-запрос для указания пути в журнале
      * @return ошибка с кодом {@code INVALID_PARAMETER}
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ApiErrorResponse typeMismatch(MethodArgumentTypeMismatchException ex) {
+    public ApiErrorResponse typeMismatch(MethodArgumentTypeMismatchException ex,
+                                         HttpServletRequest request) {
         if (ex.getRequiredType() == Severity.class) {
-            return invalid("severity должен быть critical, major или minor");
+            return invalid("severity должен быть critical, major или minor", request);
         }
-        return invalid("Некорректное значение параметра " + ex.getName());
+        return invalid("Некорректное значение параметра " + ex.getName(), request);
     }
 
-    private static ApiErrorResponse invalid(String message) {
+    private static ApiErrorResponse invalid(String message, HttpServletRequest request) {
+        log.info("HTTP 422 ККД: path={}, причина={}", request.getRequestURI(),
+                message.replace('\r', ' ').replace('\n', ' '));
         return new ApiErrorResponse(new ApiError(ApiErrorCode.INVALID_PARAMETER, message));
     }
 }

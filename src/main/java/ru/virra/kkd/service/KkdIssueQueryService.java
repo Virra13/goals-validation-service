@@ -1,5 +1,6 @@
 package ru.virra.kkd.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.virra.kkd.domain.model.IssueSeverity;
@@ -19,6 +20,7 @@ import java.util.List;
  * определяет поддерево подразделения и передаёт фильтры в репозиторий поиска.
  */
 @Service
+@Slf4j
 public class KkdIssueQueryService {
 
     private final KkdRunRepository runs;
@@ -62,12 +64,17 @@ public class KkdIssueQueryService {
             if (unitIds.isEmpty()) {
                 throw new KkdResourceNotFoundException("Подразделение " + unitId + " не найдено");
             }
+            log.debug("Поддерево для поиска проблем ККД: unitId={}, подразделений={}",
+                    unitId, unitIds.size());
         }
 
         if (ruleCode != null && rules.findByCode(ruleCode).isEmpty()) {
             throw new InvalidKkdParameterException("Неизвестный код правила " + ruleCode);
         }
 
-        return issueSearch.findPage(runId, unitIds, ruleCode, severity, limit, offset);
+        IssuePage page = issueSearch.findPage(runId, unitIds, ruleCode, severity, limit, offset);
+        log.info("Получена страница проблем ККД: runId={}, unitId={}, ruleCode={}, severity={}, limit={}, offset={}, total={}, returned={}",
+                runId, unitId, ruleCode, severity, limit, offset, page.total(), page.content().size());
+        return page;
     }
 }

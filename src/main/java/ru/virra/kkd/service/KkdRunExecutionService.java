@@ -1,5 +1,6 @@
 package ru.virra.kkd.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ import java.util.Optional;
  * Проверка, расчёт и запись выполняются в одной транзакции.
  */
 @Service
+@Slf4j
 public class KkdRunExecutionService {
     private final GoalRepository goals;
     private final KeyResultRepository keyResults;
@@ -94,24 +96,39 @@ public class KkdRunExecutionService {
         Instant startedAt = clock.instant();
         LocalDate snapshotDate = startedAt.atOffset(ZoneOffset.UTC).toLocalDate();
         KkdRun comparedTo = resolvePreviousRun(comparedToRunId);
+        log.info("Начат прогон ККД: дата снимка={}, comparedToRunId={}", snapshotDate, comparedToRunId);
+        try {
+            List<Goal> activeGoals = goals.findAllByStatus(GoalStatus.ACTIVE);
+            List<GoalData> goalData = loadGoalData(activeGoals);
+            Map<Long, Long> unitByGoal = mapGoalsToUnits(activeGoals);
+            List<Finding> findings = checkGoals(goalData, snapshotDate);
+            if (log.isDebugEnabled()) {
+                int keyResultCount = goalData.stream().mapToInt(goal -> goal.keyResults().size()).sum();
+                log.debug("Данные прогона ККД прочитаны и проверены: целей={}, КР={}, проблем={}",
+                        activeGoals.size(), keyResultCount, findings.size());
+            }
 
-        List<Goal> activeGoals = goals.findAllByStatus(GoalStatus.ACTIVE);
-        List<GoalData> goalData = loadGoalData(activeGoals);
-        Map<Long, Long> unitByGoal = mapGoalsToUnits(activeGoals);
-        List<Finding> findings = checkGoals(goalData, snapshotDate);
+            Map<Long, Long> parentByUnit = loadUnitHierarchy();
+            Map<Long, MetricValues> values = metricsCalculator.calculate(
+                    parentByUnit, goalData, findings, unitByGoal);
+            Map<String, Long> ruleIds = loadRuleIds();
+            log.debug("Метрики прогона ККД рассчитаны: подразделений={}, правил={}",
+                    values.size(), ruleIds.size());
 
-        Map<Long, Long> parentByUnit = loadUnitHierarchy();
-        Map<Long, MetricValues> values = metricsCalculator.calculate(
-                parentByUnit, goalData, findings, unitByGoal);
-        Map<String, Long> ruleIds = loadRuleIds();
-
-        KkdRun run = newRun(startedAt, comparedTo);
-        runs.save(run);
-        results.saveIssues(run.getId(), findings, unitByGoal, ruleIds, startedAt);
-        results.saveMetrics(run.getId(), values, startedAt);
-        run.setCompletedAt(clock.instant());
-        run.setStatus(RunStatus.COMPLETED);
-        return run.getId();
+            KkdRun run = newRun(startedAt, comparedTo);
+            runs.save(run);
+            results.saveIssues(run.getId(), findings, unitByGoal, ruleIds, startedAt);
+            results.saveMetrics(run.getId(), values, startedAt);
+            run.setCompletedAt(clock.instant());
+            run.setStatus(RunStatus.COMPLETED);
+            log.info("Результаты прогона ККД сформированы: runId={}, целей={}, проблем={}, подразделений={}",
+                    run.getId(), activeGoals.size(), findings.size(), values.size());
+            return run.getId();
+        } catch (RuntimeException ex) {
+            log.error("Ошибка выполнения прогона ККД: дата снимка={}, comparedToRunId={}",
+                    snapshotDate, comparedToRunId, ex);
+            throw ex;
+        }
     }
 
     private Map<Long, Long> mapGoalsToUnits(List<Goal> activeGoals) {
@@ -131,7 +148,6 @@ public class KkdRunExecutionService {
     }
 
     private Map<Long, Long> loadUnitHierarchy() {
-        // Root units have no parent, so their values are null.
         Map<Long, Long> parentByUnit = new HashMap<>();
         units.findHierarchy().forEach(unit -> parentByUnit.put(unit.id(), unit.parentId()));
         return parentByUnit;
@@ -159,12 +175,18 @@ public class KkdRunExecutionService {
             return null;
         }
         if (comparedToRunId <= 0) {
+            log.info("Отклонён прогон ККД: некорректный comparedToRunId={}", comparedToRunId);
             throw new InvalidKkdParameterException("ID прогона должен быть больше нуля");
         }
         KkdRun previous = runs.findById(comparedToRunId)
-                .orElseThrow(() -> new KkdResourceNotFoundException(
-                        "Прогон " + comparedToRunId + " не найден"));
+                .orElseThrow(() -> {
+                    log.info("Отклонён прогон ККД: сравниваемый прогон не найден, comparedToRunId={}",
+                            comparedToRunId);
+                    return new KkdResourceNotFoundException("Прогон " + comparedToRunId + " не найден");
+                });
         if (previous.getStatus() != RunStatus.COMPLETED) {
+            log.info("Отклонён прогон ККД: comparedToRunId={}, status={}",
+                    comparedToRunId, previous.getStatus());
             throw new InvalidKkdParameterException("Сравнение возможно только с завершённым прогоном");
         }
         return previous;
