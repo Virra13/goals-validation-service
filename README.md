@@ -1,4 +1,4 @@
-# Контроль качества данных по целям
+# Модуль контроля качества данных (ККД)
 
 Сервис проверяет активные цели и их ключевые результаты (КР), сохраняет результаты в PostgreSQL и отдаёт сводку, список проблем и сравнение прогонов через REST API. Стек проекта — Java 17, Spring Boot 3, PostgreSQL 15, Liquibase и Maven.
 
@@ -8,13 +8,14 @@
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up --build -d
 ```
 
-Если `.env` уже есть, пропустите копирование. Вместо файла можно задать свои `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`, `APP_PORT` и `KKD_LOG_LEVEL` в окружении перед выполнением команд Compose. В Linux и macOS для копирования используйте `cp .env.example .env`; команда запуска та же:
+Если `.env` уже есть, пропустите копирование. Вместо файла можно задать свои `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`, `APP_PORT` и `KKD_LOG_LEVEL` в окружении перед выполнением команд Compose. В Linux и macOS для копирования используйте `cp .env.example .env`.
+
+Команда запуска приложения:
 
 ```bash
-docker compose up --build -d
+docker compose up 
 ```
 
 Compose запускает PostgreSQL и приложение. При старте Liquibase создаёт схему и загружает 24 цели (20 активных) и два демопрогона. В демоданных шесть подразделений на трёх уровнях, чтобы показать вложенные ветви.
