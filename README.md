@@ -4,7 +4,14 @@
 
 ## Запуск
 
-Скопируйте `.env.example` в `.env`, при необходимости измените значения переменных и запустите Docker из корня проекта:
+Перед первым запуском создайте `.env` из [`.env.example`](.env.example) и при необходимости измените значения. В Windows PowerShell из корня проекта:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+```
+
+Если `.env` уже есть, пропустите копирование. Вместо файла можно задать свои `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`, `APP_PORT` и `KKD_LOG_LEVEL` в окружении перед выполнением команд Compose. В Linux и macOS для копирования используйте `cp .env.example .env`; команда запуска та же:
 
 ```bash
 docker compose up --build -d
@@ -14,7 +21,7 @@ Compose запускает PostgreSQL и приложение. При старт
 
 После завершения запуска API доступен на `http://localhost:8080`, PostgreSQL — на порту `5432`. Запуск приложения можно проверить через `docker compose logs kkd`.
 
-Значения для Compose берутся из `.env`; пример находится в [`.env.example`](.env.example). `DB_PORT` и `APP_PORT` задают порты на машине, например если локальный PostgreSQL уже занял `5432`. Остановить контейнеры с сохранением данных можно командой `docker compose down`.
+Compose берёт значения из `.env` или переменных окружения; в `compose.yaml` для них нет запасных значений. `DB_PORT` и `APP_PORT` задают порты на машине, например если локальный PostgreSQL уже занял `5432`. Остановить контейнеры с сохранением данных можно командой `docker compose down`.
 
 `KKD_LOG_LEVEL` задаёт уровень логов приложения (`INFO` по умолчанию, `DEBUG` для этапов расчёта, обхода подразделений и записи пакетов). На `INFO` видны выполненные прогоны, запросы чтения API и отклонённые запросы; `WARN` сообщает о неполном наборе сохранённых метрик. Логи контейнера доступны через `docker compose logs kkd`.
 
@@ -42,55 +49,30 @@ curl "http://localhost:8080/api/kkd/issues?run_id=2&unit_id=2&rule_code=GOAL_NO_
 
 ## Тесты и миграции
 
-Для тестов нужен JDK 17 или новее. Тесты JUnit 5 проверяют границы веса и давности обновления, расчёт метрик и сравнение прогонов. Они запускаются без PostgreSQL.
-
-```bash
-./mvnw test
-```
-
-В PowerShell команда запуска тестов — `.\mvnw.cmd test`. С установленным Maven также работает `mvn test`.
-
-Дополнительные интеграционные тесты используют настоящий PostgreSQL и включаются переменными `KKD_TEST_DB_*`. Для них нужна **отдельная пустая тестовая БД**: Liquibase создаст демоданные, а тесты временно создают свои записи и ограничение таблицы для проверки отката. Не указывайте рабочую БД или БД с общими данными. Без этих переменных интеграционный класс пропускается, остальные 50 сценариев выполняются без БД.
+Для тестов нужен JDK 17 или новее. Чтобы запустить **все 56 сценариев одной командой**, запустите Docker Desktop и выполните из корня проекта:
 
 ```powershell
-$env:KKD_TEST_DB_URL = 'jdbc:postgresql://localhost:5432/kkd_integration'
-$env:KKD_TEST_DB_USER = 'user'
-$env:KKD_TEST_DB_PASSWORD = '12345'
-.\mvnw.cmd test
+.\mvnw.cmd verify
 ```
 
-Полный набор содержит 56 сценариев. Он проверяет в том числе фактическое сохранение прогонов, одинаковое число SQL SELECT при росте количества подразделений, несколько пакетов INSERT, откат одной JPA-транзакции и API с данными PostgreSQL. Исполняемый JAR собирается командой `.\mvnw.cmd package`; файл — `target/kkd-0.0.1-SNAPSHOT.jar`.
+В Linux и macOS используйте `./mvnw verify`, с установленным Maven также работает `mvn verify`. Testcontainers сам поднимает временный PostgreSQL 15 для шести интеграционных тестов, Liquibase загружает стартовые данные, а после тестов контейнер удаляется. Не нужно создавать тестовую БД, запускать Compose или задавать `KKD_TEST_DB_*`.
 
-Для проверки полного отката создайте отдельную пустую БД в запущенном PostgreSQL. Ниже указаны имя пользователя, пароль и порт из `.env.example`. Если вы их изменили в `.env`, подставьте свои значения.
+Команда `.\mvnw.cmd test` запускает 50 тестов без БД и не требует Docker. При `docker compose up --build -d` сборочный этап Dockerfile выполняет эти 50 тестов; интеграционные тесты запускаются на этапе `verify`. Полный набор проверяет в том числе фактическое сохранение прогонов, число SQL SELECT при росте количества подразделений, пакеты INSERT, откат одной JPA-транзакции и API с данными PostgreSQL. Исполняемый JAR собирается командой `.\mvnw.cmd package`; файл — `target/kkd-0.0.1-SNAPSHOT.jar`.
 
-```bash
-docker compose exec postgres createdb -U user kkd_migration_check
-export DB_URL=jdbc:postgresql://localhost:5432/kkd_migration_check
-export DB_USER=user
-export DB_PASSWORD=12345
-./mvnw process-resources liquibase:update
-./mvnw liquibase:rollback -Dliquibase.rollbackCount=14
-./mvnw liquibase:update
-```
-
-В PowerShell задайте переменные так и запустите те же три цели:
+При обычном запуске приложение автоматически применяет 14 миграций. Полный цикл **накат → откат → повторный накат** можно проверить на той же локальной демобазе. Для этого нужен Maven и JDK 17 или новее на компьютере. Остановите приложение, затем в Windows PowerShell задайте параметры подключения из своего `.env` и выполните команды:
 
 ```powershell
-$env:DB_URL = 'jdbc:postgresql://localhost:5432/kkd_migration_check'
+docker compose stop kkd
+$env:DB_URL = 'jdbc:postgresql://localhost:5432/kkd_db'
 $env:DB_USER = 'user'
 $env:DB_PASSWORD = '12345'
-.\mvnw.cmd process-resources liquibase:update
-.\mvnw.cmd liquibase:rollback '-Dliquibase.rollbackCount=14'
-.\mvnw.cmd liquibase:update
+mvn process-resources liquibase:rollback '-Dliquibase.rollbackCount=14'
+mvn liquibase:update
+docker compose start kkd
+curl.exe 'http://localhost:8080/api/runs'
 ```
 
-В журнале Liquibase первый и повторный накат применяют все 14 changeset, а откат снимает все 14. После повторного наката запрос ниже должен вернуть `2`. Для повторной проверки можно удалить созданную для неё БД командой `docker compose exec postgres dropdb -U user kkd_migration_check` и создать её заново.
-
-Дополнительно можно проверить частичный откат семи миграций стартовых данных, не удаляя схему: `.\mvnw.cmd liquibase:rollback '-Dliquibase.rollbackCount=7'`, затем `.\mvnw.cmd liquibase:update`. После него должны восстановиться 2 прогона, 24 цели, 17 проблем и 48 значений метрик. Для каждого цикла используйте только отдельную проверочную БД.
-
-```bash
-docker compose exec postgres psql -U user -d kkd_migration_check -tAc "SELECT count(*) FROM kkd_run"
-```
+В примере указаны значения из `.env.example`. Если вы изменили `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` или `APP_PORT`, подставьте их в `DB_URL`, учётные данные и адрес API.
 
 ## Архитектура
 

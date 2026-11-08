@@ -1,7 +1,6 @@
 package ru.virra.kkd.integration;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +12,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.virra.kkd.domain.metric.MetricKey;
 import ru.virra.kkd.exception.InvalidKkdParameterException;
 import ru.virra.kkd.service.KkdRunExecutionService;
@@ -29,17 +31,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/** Requires a dedicated disposable database, never a shared/production database. */
-@EnabledIfEnvironmentVariable(named = "KKD_TEST_DB_URL", matches = ".+")
+@Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({KkdPostgresIntegrationTest.FixedTime.class, SqlRecordingConfiguration.class})
-class KkdPostgresIntegrationTest {
+@Import({KkdPostgresIT.FixedTime.class, SqlRecordingConfiguration.class})
+class KkdPostgresIT {
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+
     @DynamicPropertySource
     static void database(DynamicPropertyRegistry properties) {
-        properties.add("spring.datasource.url", () -> System.getenv("KKD_TEST_DB_URL"));
-        properties.add("spring.datasource.username", () -> System.getenv("KKD_TEST_DB_USER"));
-        properties.add("spring.datasource.password", () -> System.getenv().getOrDefault("KKD_TEST_DB_PASSWORD", ""));
+        properties.add("spring.datasource.url", postgres::getJdbcUrl);
+        properties.add("spring.datasource.username", postgres::getUsername);
+        properties.add("spring.datasource.password", postgres::getPassword);
     }
 
     @TestConfiguration
