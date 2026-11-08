@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -28,14 +28,14 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      KKD_LOG_LEVEL: ${KKD_LOG_LEVEL:-INFO}
+      KKD_LOG_LEVEL: ${KKD_LOG_LEVEL}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - app-network
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${APP_PORT}:8080"
 
 volumes:
   postgres_data:
