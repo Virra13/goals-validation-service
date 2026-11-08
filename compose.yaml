@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: ${DB_NAME:-kkd_db}
-      POSTGRES_USER: ${DB_USER:-kkd}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-kkd}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -25,9 +25,9 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-kkd_db}
-      DB_USER: ${DB_USER:-user}
-      DB_PASSWORD: ${DB_PASSWORD:-12345}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       KKD_LOG_LEVEL: ${KKD_LOG_LEVEL:-INFO}
     depends_on:
       postgres:
