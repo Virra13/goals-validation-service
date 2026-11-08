@@ -8,7 +8,7 @@ import ru.virra.kkd.domain.comparison.MetricChange;
 import ru.virra.kkd.domain.comparison.RunComparator;
 import ru.virra.kkd.domain.metric.MetricKey;
 import ru.virra.kkd.domain.metric.MetricValues;
-import ru.virra.kkd.domain.model.Severity;
+import ru.virra.kkd.domain.model.IssueSeverity;
 import ru.virra.kkd.repository.projection.IssueSummaryRow;
 import ru.virra.kkd.entity.KkdRun;
 import ru.virra.kkd.entity.KkdRunMetric;
@@ -27,12 +27,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+/**
+ * Формирует модель чтения сводной статистики ККД для прогона и подразделения.
+ * Получает сохранённые метрики подразделения, проблемы его поддерева и результаты
+ * сравнения с прогоном, указанным в {@code compared_to_run_id}.
+ */
 @Service
 public class KkdSummaryService {
 
@@ -50,28 +56,33 @@ public class KkdSummaryService {
         this.issues = issues;
     }
 
+    /**
+     * Получает сводную статистику для подразделения с учётом его дочерних подразделений.
+     * Метрики читаются из сохранённых значений для указанного подразделения;
+     * проблемы отбираются по подразделениям текущего поддерева.
+     * Если прогон для сравнения не указан, предыдущие значения и дельты отсутствуют.
+     *
+     * @param runId идентификатор текущего прогона ККД
+     * @param unitId идентификатор выбранного подразделения
+     * @return модель чтения с метриками, разбивкой проблем по важности и результатами сравнения
+     * @throws KkdResourceNotFoundException если прогон или подразделение не найдены
+     */
     @Transactional(readOnly = true)
     public KkdSummary getSummary(long runId, long unitId) {
-        KkdRun run = runs.findById(runId)
-                .orElseThrow(() -> new KkdResourceNotFoundException(
-                        "Прогон " + runId + " не найден"));
-        Unit unit = units.findById(unitId)
-                .orElseThrow(() -> new KkdResourceNotFoundException(
-                        "Подразделение " + unitId + " не найдено"));
-
+        KkdRun run = findRun(runId);
+        Unit unit = findUnit(unitId);
         KkdRun previousRun = run.getComparedToRun();
-        Long previousRunId = previousRun == null ? null : previousRun.getId();
         List<Long> subtreeIds = units.findSubtreeIds(unitId);
 
         MetricValues currentMetrics = loadMetrics(runId, unitId);
-        MetricValues previousMetrics = previousRunId == null ? null : loadMetrics(previousRunId, unitId);
+        MetricValues previousMetrics = previousRun == null
+                ? null : loadMetrics(previousRun.getId(), unitId);
         Map<MetricKey, MetricChange> metricChanges = comparator.compareMetrics(currentMetrics, previousMetrics);
 
         List<IssueSummaryRow> currentIssues = issues.findSummaryRows(runId, subtreeIds);
-        List<IssueSummaryRow> previousIssues = previousRunId == null
-                ? null : issues.findSummaryRows(previousRunId, subtreeIds);
+        List<IssueSummaryRow> previousIssues = previousRun == null
+                ? null : issues.findSummaryRows(previousRun.getId(), subtreeIds);
         List<SeverityChange> issuesBySeverity = severityChanges(currentIssues, previousIssues);
-
         Set<IssueKey> currentKeys = issueKeys(currentIssues);
         Set<IssueKey> previousKeys = previousIssues == null ? null : issueKeys(previousIssues);
         IssueDelta issueDelta = comparator.compareIssues(currentKeys, previousKeys);
@@ -82,6 +93,18 @@ public class KkdSummaryService {
 
         return new KkdSummary(runReference, previousRunReference, unitReference,
                 metricChanges, issuesBySeverity, issueDelta);
+    }
+
+    private KkdRun findRun(long runId) {
+        return runs.findById(runId)
+                .orElseThrow(() -> new KkdResourceNotFoundException(
+                        "Прогон " + runId + " не найден"));
+    }
+
+    private Unit findUnit(long unitId) {
+        return units.findById(unitId)
+                .orElseThrow(() -> new KkdResourceNotFoundException(
+                        "Подразделение " + unitId + " не найдено"));
     }
 
     private MetricValues loadMetrics(long runId, long unitId) {
@@ -98,18 +121,19 @@ public class KkdSummaryService {
     }
 
     private static Set<IssueKey> issueKeys(List<IssueSummaryRow> issues) {
-        return issues.stream()
-                .map(issue -> new IssueKey(
-                        issue.ruleId(), issue.objectType(), issue.objectId()))
-                .collect(Collectors.toSet());
+        Set<IssueKey> keys = new HashSet<>();
+        for (IssueSummaryRow issue : issues) {
+            keys.add(new IssueKey(issue.ruleId(), issue.objectType(), issue.objectId()));
+        }
+        return keys;
     }
 
     private static List<SeverityChange> severityChanges(List<IssueSummaryRow> currentIssues,
                                                         List<IssueSummaryRow> previousIssues) {
-        Map<Severity, Long> currentCounts = countBySeverity(currentIssues);
-        Map<Severity, Long> previousCounts = previousIssues == null ? null : countBySeverity(previousIssues);
+        Map<IssueSeverity, Long> currentCounts = countBySeverity(currentIssues);
+        Map<IssueSeverity, Long> previousCounts = previousIssues == null ? null : countBySeverity(previousIssues);
         List<SeverityChange> changes = new ArrayList<>();
-        for (Severity severity : Severity.values()) {
+        for (IssueSeverity severity : IssueSeverity.values()) {
             long current = currentCounts.getOrDefault(severity, 0L);
             Long previous = previousCounts == null ? null : previousCounts.getOrDefault(severity, 0L);
             Long delta = previous == null ? null : current - previous;
@@ -118,9 +142,12 @@ public class KkdSummaryService {
         return List.copyOf(changes);
     }
 
-    private static Map<Severity, Long> countBySeverity(List<IssueSummaryRow> issues) {
-        return issues.stream()
-                .collect(Collectors.groupingBy(IssueSummaryRow::severity, Collectors.counting()));
+    private static Map<IssueSeverity, Long> countBySeverity(List<IssueSummaryRow> issues) {
+        Map<IssueSeverity, Long> counts = new EnumMap<>(IssueSeverity.class);
+        for (IssueSummaryRow issue : issues) {
+            counts.merge(issue.severity(), 1L, Long::sum);
+        }
+        return counts;
     }
 
     private static RunReference reference(KkdRun run) {

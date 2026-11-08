@@ -57,7 +57,7 @@ $env:KKD_TEST_DB_PASSWORD = '12345'
 .\mvnw.cmd test
 ```
 
-Полный набор содержит 44 сценария. Он проверяет в том числе фактическое сохранение прогонов, одинаковое число JPA-запросов при росте количества подразделений, несколько пакетов INSERT, общий откат JPA/JDBC и API с данными PostgreSQL. Исполняемый JAR собирается командой `.\mvnw.cmd package`; файл — `target/kkd-0.0.1-SNAPSHOT.jar`.
+Полный набор содержит 44 сценария. Он проверяет в том числе фактическое сохранение прогонов, одинаковое число SQL SELECT при росте количества подразделений, несколько пакетов INSERT, откат одной JPA-транзакции и API с данными PostgreSQL. Исполняемый JAR собирается командой `.\mvnw.cmd package`; файл — `target/kkd-0.0.1-SNAPSHOT.jar`.
 
 Для проверки полного отката создайте отдельную пустую БД в запущенном PostgreSQL. Ниже указаны стандартные имя пользователя, пароль и порт из Compose. Если вы их переопределили, подставьте свои значения.
 
@@ -95,8 +95,8 @@ docker compose exec postgres psql -U kkd -d kkd_migration_check -tAc "SELECT cou
 - [`domain.rule`](src/main/java/ru/virra/kkd/domain/rule) — `RuleChecker` запускает четыре независимых правила для активной цели. `GOAL_NO_OWNER` и `GOAL_NO_KR` дают `critical`, `KR_WEIGHTS_SUM` — `major`, `KR_STALE_PROGRESS` — `minor`. Правила получают данные цели и КР и возвращают список нарушений без обращения к БД.
 - [`domain.metric`](src/main/java/ru/virra/kkd/domain/metric) — `MetricsCalculator` считает долю целей без проблем, число проблем на активную цель, долю целей с ответственным и долю целей с корректной суммой весов среди целей с КР. При нулевом знаменателе значение равно `null`.
 - [`domain.comparison`](src/main/java/ru/virra/kkd/domain/comparison) — `RunComparator` вычитает прошлое значение метрики из текущего. Рост долей считается улучшением, рост числа проблем на цель — ухудшением. Проблемы сравниваются по правилу, типу и ID объекта. Разность и пересечение множеств дают счётчики новых, сохраняющихся и исправленных проблем.
-- [`service`](src/main/java/ru/virra/kkd/service) — `KkdRunExecutionService` читает активные цели, КР и иерархию из одного снимка БД. `UnitMetricsCalculator` складывает счётчики от листьев к корню без запросов по каждому подразделению. `KkdResultWriter` сохраняет проблемы и метрики JDBC-пакетами в одной транзакции с JPA-прогоном. Сводка читает узкие проекции проблем без описаний. Прошлый прогон задан ссылкой `compared_to_run_id`. Если ссылки нет, прошлые значения, дельты и тренды возвращаются как `null`.
-- [`controller`](src/main/java/ru/virra/kkd/controller) принимает HTTP-запросы и формирует ответы, [`repository`](src/main/java/ru/virra/kkd/repository) выполняет запросы к PostgreSQL, [`readmodel`](src/main/java/ru/virra/kkd/readmodel) содержит модели чтения.
+- [`service`](src/main/java/ru/virra/kkd/service) — `KkdRunExecutionService` читает активные цели, КР и иерархию из одного снимка БД. `UnitMetricsCalculator` складывает счётчики от листьев к корню без запросов по каждому подразделению. Сводка читает узкие проекции проблем без описаний. Прошлый прогон задан ссылкой `compared_to_run_id`. Если ссылки нет, прошлые значения, дельты и тренды возвращаются как `null`.
+- [`controller`](src/main/java/ru/virra/kkd/controller) принимает HTTP-запросы и формирует ответы, [`repository`](src/main/java/ru/virra/kkd/repository) выполняет запросы к PostgreSQL. `KkdResultWriter` сохраняет проблемы и метрики через JPA с пакетной отправкой INSERT в одной транзакции с прогоном. [`readmodel`](src/main/java/ru/virra/kkd/readmodel) содержит модели чтения.
 
 ## Использование ИИ
 

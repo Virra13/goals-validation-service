@@ -10,6 +10,11 @@ import ru.virra.kkd.service.KkdRunQueryService;
 
 import java.util.List;
 
+/**
+ * Реализует операцию получения списка прогонов ККД по контракту {@link RunsApi}.
+ * Получает данные прогонов из {@link KkdRunQueryService} и преобразует их
+ * в модели ответа OpenAPI, включая статус, дату снимка и число найденных проблем.
+ */
 @RestController
 public class KkdRunController implements RunsApi {
 
@@ -19,6 +24,11 @@ public class KkdRunController implements RunsApi {
         this.runs = runs;
     }
 
+    /**
+     * Возвращает список прогонов в порядке от новых к старым.
+     *
+     * @return модель списка прогонов, определённая контрактом OpenAPI
+     */
     @Override
     public RunListResponse listRuns() {
         List<RunResponse> content = runs.listRuns().stream()
@@ -29,7 +39,12 @@ public class KkdRunController implements RunsApi {
     }
 
     private static RunResponse toResponse(RunListItem run) {
-        RunStatus status = RunStatus.fromValue(run.status().name());
+        RunStatus status = switch (run.status()) {
+            case PENDING -> RunStatus.PENDING;
+            case RUNNING -> RunStatus.RUNNING;
+            case COMPLETED -> RunStatus.COMPLETED;
+            case FAILED -> RunStatus.FAILED;
+        };
         return new RunResponse(run.id(), status, run.snapshotDate(),
                 run.comparedToRunId(), run.issuesCount());
     }

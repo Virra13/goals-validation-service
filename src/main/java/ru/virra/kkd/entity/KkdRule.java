@@ -4,8 +4,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.virra.kkd.domain.model.Severity;
+import ru.virra.kkd.domain.model.IssueSeverity;
 
+/**
+ * Запись справочника правил ККД.
+ * Содержит код правила, его описание, уровень важности обнаруживаемой проблемы
+ * и признак активности записи справочника.
+ */
 @Entity
 @Table(name = "kkd_rule")
 @Getter
@@ -28,7 +33,7 @@ public class KkdRule {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Severity severity;
+    private IssueSeverity severity;
 
     @Column(name = "is_active", nullable = false)
     private boolean active;

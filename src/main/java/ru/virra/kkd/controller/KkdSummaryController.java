@@ -9,6 +9,11 @@ import ru.virra.kkd.openapi.model.SummaryResponse;
 import ru.virra.kkd.readmodel.KkdSummary;
 import ru.virra.kkd.service.KkdSummaryService;
 
+/**
+ * Реализует операцию получения сводной статистики ККД по контракту {@link SummaryApi}.
+ * Проверяет идентификаторы прогона и подразделения, запрашивает сводку через
+ * {@link KkdSummaryService} и преобразует модель чтения в ответ OpenAPI.
+ */
 @RestController
 public class KkdSummaryController implements SummaryApi {
 
@@ -18,11 +23,24 @@ public class KkdSummaryController implements SummaryApi {
         this.summaries = summaries;
     }
 
+    /**
+     * Настраивает проверку формата идентификаторов {@code run_id} и {@code unit_id}.
+     *
+     * @param binder механизм привязки параметров HTTP-запроса
+     */
     @InitBinder({"run_id", "unit_id"})
     void bindIds(WebDataBinder binder) {
         binder.registerCustomEditor(Long.class, new StrictLongQueryEditor());
     }
 
+    /**
+     * Возвращает сводную статистику прогона по подразделению с учётом его поддерева.
+     *
+     * @param runId идентификатор прогона ККД
+     * @param unitId идентификатор подразделения
+     * @return модель сводной статистики, определённая контрактом OpenAPI
+     * @throws InvalidKkdParameterException если один из идентификаторов не положителен
+     */
     @Override
     public SummaryResponse getSummary(Long runId, Long unitId) {
         if (runId <= 0 || unitId <= 0) {

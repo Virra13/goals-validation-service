@@ -3,11 +3,16 @@ package ru.virra.kkd.domain.rule;
 import ru.virra.kkd.domain.model.Finding;
 import ru.virra.kkd.domain.model.GoalData;
 import ru.virra.kkd.domain.model.GoalQuality;
-import ru.virra.kkd.domain.model.Severity;
+import ru.virra.kkd.domain.model.IssueSeverity;
 
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Реализует правило ККД {@code GOAL_NO_OWNER}.
+ * Создаёт проблему важности {@code CRITICAL}, если у активной цели
+ * не задан ответственный или его идентификатор состоит только из пробелов.
+ */
 final class GoalNoOwnerRule implements QualityRule {
 
     @Override
@@ -15,7 +20,7 @@ final class GoalNoOwnerRule implements QualityRule {
         if (GoalQuality.hasOwner(goal)) {
             return List.of();
         }
-        return List.of(Finding.forGoal("GOAL_NO_OWNER", goal.id(), Severity.CRITICAL,
+        return List.of(Finding.forGoal("GOAL_NO_OWNER", goal.id(), IssueSeverity.CRITICAL,
                 "У активной цели отсутствует ответственный."));
     }
 }

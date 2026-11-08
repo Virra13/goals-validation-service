@@ -5,10 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.virra.kkd.domain.model.IssueObjectType;
-import ru.virra.kkd.domain.model.Severity;
+import ru.virra.kkd.domain.model.IssueSeverity;
 
 import java.time.Instant;
 
+/**
+ * Проблема, обнаруженная при проверке правила в конкретном прогоне ККД.
+ * Подразделение соответствует цели на момент прогона; для проблемы ключевого
+ * результата сохраняется подразделение связанной с ним цели.
+ */
 @Entity
 @Table(
         name = "kkd_issue",
@@ -54,7 +59,7 @@ public class KkdIssue {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Severity severity;
+    private IssueSeverity severity;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;

@@ -5,6 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Подразделение в иерархической структуре организации.
+ * Отсутствие родительского подразделения означает верхний уровень иерархии.
+ */
 @Entity
 @Table(name = "unit")
 @Getter

@@ -8,6 +8,11 @@ import ru.virra.kkd.repository.KkdRunRepository;
 import java.time.ZoneOffset;
 import java.util.List;
 
+/**
+ * Формирует модель чтения списка прогонов ККД.
+ * Для каждого прогона получает статус, дату снимка, идентификатор прогона
+ * для сравнения и количество найденных проблем.
+ */
 @Service
 public class KkdRunQueryService {
 
@@ -17,6 +22,12 @@ public class KkdRunQueryService {
         this.runs = runs;
     }
 
+    /**
+     * Возвращает список прогонов в порядке убывания даты снимка и идентификатора.
+     * Дата снимка преобразуется из {@code Instant} в календарную дату UTC.
+     *
+     * @return модели чтения прогонов с количеством найденных проблем
+     */
     @Transactional(readOnly = true)
     public List<RunListItem> listRuns() {
         return runs.findRunList().stream()

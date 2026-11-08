@@ -4,14 +4,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.virra.kkd.repository.projection.IssueSummaryRow;
-import ru.virra.kkd.domain.model.IssueObjectType;
-import ru.virra.kkd.domain.model.Severity;
 import ru.virra.kkd.entity.KkdIssue;
 
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Репозиторий проблем, сохранённых по результатам прогонов ККД.
+ * Предоставляет проекцию проблем для сводной статистики
+ * и сравнения результатов прогонов.
+ */
 public interface KkdIssueRepository extends JpaRepository<KkdIssue, Long> {
+    /**
+     * Возвращает поля проблем, необходимые для сводной статистики и сравнения прогонов.
+     * Описания и связанные сущности не загружаются.
+     *
+     * @param runId идентификатор прогона ККД
+     * @param unitIds идентификаторы подразделений выбранного поддерева
+     * @return строки с правилом, объектом и важностью каждой найденной проблемы
+     */
     @Query("""
             select new ru.virra.kkd.repository.projection.IssueSummaryRow(
                 i.rule.id, i.objectType, i.objectId, i.severity)
@@ -19,10 +30,4 @@ public interface KkdIssueRepository extends JpaRepository<KkdIssue, Long> {
             """)
     List<IssueSummaryRow> findSummaryRows(@Param("runId") long runId,
                                         @Param("unitIds") Collection<Long> unitIds);
-    List<KkdIssue> findAllByRunId(Long runId);
-    List<KkdIssue> findAllByRunIdAndUnitIdIn(long runId, Collection<Long> unitIds);
-    List<KkdIssue> findAllByRunIdAndSeverity(Long runId, Severity severity);
-    List<KkdIssue> findAllByRunIdAndRuleCode(Long runId, String ruleCode);
-    boolean existsByRunIdAndRuleIdAndObjectTypeAndObjectId(Long runId, Long ruleId, IssueObjectType objectType, Long objectId);
-    long countByRunId(Long runId);
 }

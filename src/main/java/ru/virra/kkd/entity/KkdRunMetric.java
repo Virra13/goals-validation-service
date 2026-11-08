@@ -8,6 +8,11 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * Сохранённое значение метрики для пары «прогон — подразделение».
+ * Значение может быть {@code null}, если знаменатель метрики равен нулю.
+ * Пара «прогон — подразделение — код метрики» уникальна.
+ */
 @Entity
 @Table(
         name = "kkd_run_metric",

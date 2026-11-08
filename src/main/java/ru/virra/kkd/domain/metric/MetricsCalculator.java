@@ -10,13 +10,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Рассчитывает метрики ККД для переданного набора целей и найденных проблем.
+ * Учитывает только активные цели. Самостоятельно не обходит иерархию подразделений;
+ * суммирование счётчиков по поддереву выполняет {@link UnitMetricsCalculator}.
+ */
 public final class MetricsCalculator {
 
+    /**
+     * Рассчитывает значения метрик по активным целям и связанным с ними проблемам.
+     *
+     * @param goals цели для расчёта
+     * @param findings проблемы, связанные с целями по идентификатору цели
+     * @return рассчитанные значения; метрика с нулевым знаменателем равна {@code null}
+     */
     public MetricValues calculate(Collection<GoalData> goals,
                                   Collection<Finding> findings) {
         return count(goals, findings).values();
     }
 
+    /**
+     * Подсчитывает исходные величины для метрик без вычисления долей.
+     * Результат можно суммировать с показателями дочерних подразделений.
+     *
+     * @param goals цели для расчёта; неактивные цели пропускаются
+     * @param findings проблемы, связанные с целями по идентификатору цели
+     * @return счётчики активных целей и найденных для них проблем
+     */
     public MetricCounts count(Collection<GoalData> goals, Collection<Finding> findings) {
         Map<Long, List<Finding>> findingsByGoal = findings.stream()
                 .collect(Collectors.groupingBy(Finding::goalId));

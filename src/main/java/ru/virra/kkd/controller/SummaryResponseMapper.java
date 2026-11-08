@@ -8,7 +8,6 @@ import ru.virra.kkd.openapi.model.MetricCode;
 import ru.virra.kkd.openapi.model.MetricTrend;
 import ru.virra.kkd.openapi.model.MetricUnit;
 import ru.virra.kkd.openapi.model.RunSnapshotResponse;
-import ru.virra.kkd.openapi.model.Severity;
 import ru.virra.kkd.openapi.model.SeverityResponse;
 import ru.virra.kkd.openapi.model.SummaryMetricResponse;
 import ru.virra.kkd.openapi.model.SummaryResponse;
@@ -20,11 +19,24 @@ import ru.virra.kkd.readmodel.UnitReference;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Формирует ответ сводной статистики из модели чтения {@link KkdSummary}.
+ * Преобразует ссылки на прогоны, значения метрик, распределение проблем по уровням важности
+ * и результаты сравнения в модели, созданные по контракту OpenAPI.
+ * Преобразование идентификатора прогона в формат {@code RUN-001} выполняется только для сводки.
+ */
 final class SummaryResponseMapper {
 
     private SummaryResponseMapper() {
     }
 
+    /**
+     * Создаёт ответ API для выбранного прогона и подразделения.
+     * При отсутствии прогона для сравнения поля {@code compared_to} и {@code delta} остаются {@code null}.
+     *
+     * @param summary сводная статистика, полученная из сервиса чтения
+     * @return модель ответа, определённая контрактом OpenAPI
+     */
     static SummaryResponse toResponse(KkdSummary summary) {
         RunSnapshotResponse run = toRunSnapshot(summary.run());
         RunSnapshotResponse comparedTo = toRunSnapshot(summary.comparedTo());
@@ -38,7 +50,7 @@ final class SummaryResponseMapper {
 
         List<SeverityResponse> issuesBySeverity = summary.issuesBySeverity().stream()
                 .map(change -> new SeverityResponse(
-                        Severity.valueOf(change.severity().name()),
+                        IssueSeverityMapper.toApi(change.severity()),
                         change.current(), change.previous(), change.delta()))
                 .toList();
 
@@ -50,6 +62,13 @@ final class SummaryResponseMapper {
                 issuesBySeverity, deltaResponse);
     }
 
+    /**
+     * Преобразует ссылку на прогон для ответа сводной статистики.
+     * Числовой идентификатор записывается с префиксом {@code RUN-} и минимум тремя цифрами.
+     *
+     * @param run ссылка на прогон или {@code null}, если прогона для сравнения нет
+     * @return данные прогона для API или {@code null}
+     */
     private static RunSnapshotResponse toRunSnapshot(RunReference run) {
         if (run == null) {
             return null;
@@ -58,6 +77,13 @@ final class SummaryResponseMapper {
         return new RunSnapshotResponse(id, run.snapshotDate());
     }
 
+    /**
+     * Формирует элемент списка метрик для ответа сводной статистики.
+     *
+     * @param key код и семантика метрики
+     * @param change текущее значение и результат сравнения с предыдущим прогоном
+     * @return метрика с названием, единицей измерения и направлением изменения
+     */
     private static SummaryMetricResponse toMetric(MetricKey key, MetricChange change) {
         String title = switch (key) {
             case CLEAN_GOALS_SHARE -> "Доля корректных целей";
@@ -67,7 +93,14 @@ final class SummaryResponseMapper {
         };
         MetricCode code = MetricCode.fromValue(key.code());
         MetricUnit unit = key == MetricKey.ISSUES_PER_GOAL ? MetricUnit.COUNT : MetricUnit.PERCENT;
-        MetricTrend trend = change.trend() == null ? null : MetricTrend.valueOf(change.trend().name());
+        MetricTrend trend = null;
+        if (change.trend() != null) {
+            trend = switch (change.trend()) {
+                case BETTER -> MetricTrend.BETTER;
+                case WORSE -> MetricTrend.WORSE;
+                case SAME -> MetricTrend.SAME;
+            };
+        }
 
         return new SummaryMetricResponse(code, title, unit,
                 change.value(), change.previous(), change.delta(), trend);

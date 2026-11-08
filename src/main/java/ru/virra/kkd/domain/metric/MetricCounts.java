@@ -3,11 +3,19 @@ package ru.virra.kkd.domain.metric;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/** Additive counts: ratios must be calculated only after subtree aggregation. */
+/**
+ * Счётчики, из которых рассчитываются метрики ККД.
+ * Счётчики подразделений складываются по поддереву до вычисления долей,
+ * чтобы итоговые показатели не зависели от размера отдельных подразделений.
+ */
 public record MetricCounts(long activeGoals, long cleanGoals, long issues,
                            long goalsWithOwner, long goalsWithKeyResults, long goalsWithValidWeights) {
-    public static final MetricCounts ZERO = new MetricCounts(0, 0, 0, 0, 0, 0);
-
+    /**
+     * Складывает счётчики без вычисления и округления промежуточных значений метрик.
+     *
+     * @param other счётчики добавляемого подразделения
+     * @return сумма соответствующих счётчиков
+     */
     public MetricCounts plus(MetricCounts other) {
         return new MetricCounts(activeGoals + other.activeGoals, cleanGoals + other.cleanGoals,
                 issues + other.issues, goalsWithOwner + other.goalsWithOwner,
@@ -15,14 +23,28 @@ public record MetricCounts(long activeGoals, long cleanGoals, long issues,
                 goalsWithValidWeights + other.goalsWithValidWeights);
     }
 
+    /**
+     * Рассчитывает метрики ККД по накопленным счётчикам.
+     * Доли выражаются в процентах, а среднее количество проблем на цель — числом.
+     * Результаты округляются до четырёх знаков после запятой. Если знаменатель
+     * отдельной метрики равен нулю, её значение равно {@code null}.
+     *
+     * @return значения четырёх метрик ККД
+     */
     public MetricValues values() {
-        return new MetricValues(ratio(cleanGoals, activeGoals, 100), ratio(issues, activeGoals, 1),
-                ratio(goalsWithOwner, activeGoals, 100),
-                ratio(goalsWithValidWeights, goalsWithKeyResults, 100));
+        BigDecimal cleanGoalsShare = ratio(cleanGoals, activeGoals, 100);
+        BigDecimal issuesPerGoal = ratio(issues, activeGoals, 1);
+        BigDecimal goalsWithOwnerShare = ratio(goalsWithOwner, activeGoals, 100);
+        BigDecimal validWeightsShare = ratio(goalsWithValidWeights, goalsWithKeyResults, 100);
+        return new MetricValues(cleanGoalsShare, issuesPerGoal,
+                goalsWithOwnerShare, validWeightsShare);
     }
 
     private static BigDecimal ratio(long numerator, long denominator, int multiplier) {
-        return denominator == 0 ? null : BigDecimal.valueOf(numerator)
+        if (denominator == 0) {
+            return null;
+        }
+        return BigDecimal.valueOf(numerator)
                 .multiply(BigDecimal.valueOf(multiplier))
                 .divide(BigDecimal.valueOf(denominator), 4, RoundingMode.HALF_UP);
     }

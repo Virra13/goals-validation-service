@@ -8,6 +8,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Применяет правила ККД к данным цели и связанных с ней ключевых результатов.
+ * Проверяются только активные цели; результаты отдельных правил объединяются
+ * в список обнаруженных проблем без обращения к БД.
+ */
 public final class RuleChecker {
 
     private static final List<QualityRule> RULES = List.of(
@@ -17,6 +22,14 @@ public final class RuleChecker {
             new KrStaleProgressRule()
     );
 
+    /**
+     * Последовательно проверяет цель всеми правилами ККД.
+     * Для неактивной цели правила не запускаются.
+     *
+     * @param goal данные цели и её ключевых результатов
+     * @param snapshotDate календарная дата снимка прогона в UTC
+     * @return неизменяемый список обнаруженных проблем или пустой список
+     */
     public List<Finding> checkGoal(GoalData goal, LocalDate snapshotDate) {
         if (goal.status() != GoalStatus.ACTIVE) {
             return List.of();

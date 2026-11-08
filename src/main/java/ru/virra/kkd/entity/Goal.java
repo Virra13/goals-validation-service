@@ -10,6 +10,10 @@ import ru.virra.kkd.domain.model.GoalStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 
+/**
+ * Цель, относящаяся к подразделению и при необходимости к родительской цели.
+ * Отсутствие ответственного допускается на уровне данных и проверяется правилом ККД.
+ */
 @Entity
 @Table(name = "goal")
 @Getter

@@ -8,6 +8,11 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * Ключевой результат, связанный с целью.
+ * Вес и дата последнего обновления факта могут отсутствовать;
+ * соответствующие нарушения определяются правилами ККД.
+ */
 @Entity
 @Table(name = "key_result")
 @Getter

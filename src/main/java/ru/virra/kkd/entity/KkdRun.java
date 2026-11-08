@@ -8,6 +8,11 @@ import ru.virra.kkd.domain.model.RunStatus;
 
 import java.time.Instant;
 
+/**
+ * Сохранённый прогон ККД для определённой даты снимка.
+ * Содержит статус выполнения и необязательную ссылку на прогон для сравнения;
+ * у первого прогона такая ссылка отсутствует.
+ */
 @Entity
 @Table(name = "kkd_run")
 @Getter

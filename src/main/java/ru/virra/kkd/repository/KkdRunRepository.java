@@ -2,16 +2,22 @@ package ru.virra.kkd.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import ru.virra.kkd.domain.model.RunStatus;
 import ru.virra.kkd.entity.KkdRun;
 import ru.virra.kkd.repository.projection.RunListRow;
 
 import java.util.List;
 
+/**
+ * Репозиторий прогонов ККД.
+ * Предоставляет проекцию для списка прогонов с количеством найденных проблем.
+ */
 public interface KkdRunRepository extends JpaRepository<KkdRun, Long> {
-    List<KkdRun> findAllByOrderBySnapshotDateDesc();
-    List<KkdRun> findAllByStatusOrderBySnapshotDateDesc(RunStatus status);
-
+    /**
+     * Возвращает проекции прогонов с количеством найденных проблем.
+     * Прогоны без проблем включаются в результат с нулевым счётчиком.
+     *
+     * @return прогоны по убыванию даты снимка и идентификатора
+     */
     @Query("""
             select new ru.virra.kkd.repository.projection.RunListRow(
                 r.id, r.status, r.snapshotDate, base.id, count(i.id)
